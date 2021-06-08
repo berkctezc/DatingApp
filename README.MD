@@ -37,7 +37,7 @@ dotnet sln add API # adds project to the solution we created
 
 * **F1:** command palette, **Ctrl+":** terminal 
 * disable auto save, exclude `**/obj and **/bin` folders in user settings, disable compact folders, add code command to path
-* Extensions: **Name:** [C#](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp) , [C# Extensions](https://marketplace.visualstudio.com/items?itemName=kreativ-software.csharpextensions) 
+* **Extensions:** [C#](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp) , [C# Extensions](https://marketplace.visualstudio.com/items?itemName=kreativ-software.csharpextensions) , [NuGet Gallery](https://marketplace.visualstudio.com/items?itemName=patcx.vscode-nuget-gallery)
 * from command palette type generate assets and click it. (appsettings.json and appsettings.Development.json files should be created after this operation) 
 
 ### API Project Files
@@ -55,9 +55,28 @@ dotnet run
   * **ConfigureServices:** Dependency injection container. If we want to make a class or a service available to other areas of our application, we can add them inside ConfigureServices method.
   * **Configure:** Used to configure http request pipeline. Our requests goes through a series of middleware in this method.
     * `env.IsDevelopment > app.UseDeveloperExceptinPage()` : if we are in development mode, when application encounters a problem then we use the developer exception page.
-    * `app.HttpsRedirection()`: Rediretcs HTTP to HTTPS
+    * `app.HttpsRedirection()`: Redirects HTTP to HTTPS
     * `app.UseRouting()`: Routing our actions to access them
     * `app.UseAuthorization()`: Authorization for our actions
-    * `app.UseEndpoints(endpoints=>{endpoints.MapControllers();})`: Maps actions in controllers in controllers folder 
+    * `app.UseEndpoints(endpoints=>{endpoints.MapControllers();})`: Maps actions  in controllers in controllers folder 
 * **Properties/launchSettings.json**: configure launch options of project
 
+### Getting to work
+
+* Create Entities folder and create an Entity
+
+* **Entity Framework:** An Object Relational Mapper that translates our code into SQL and update our tables in the database. EF features are Querying, Change Tracking, Saving, Concurrency, Caching, Built-in conventions, Configurations, Migrations
+
+* Use NuGet Gallery to install Microsoft.EntityFrameworkCore (F1: >Open NuGet Gallery)
+
+* Create Data folder and inside Data Create Context file that implements DbContext
+
+* add to services in ConfigureServices >      
+
+  ```cs
+  services.AddDbContext<DataContext>(options=>{   options.UseSqlite("Connection String");});
+  
+  
+  ```
+
+  
