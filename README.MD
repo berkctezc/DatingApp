@@ -11,7 +11,7 @@ This is a project for learning purposes named DatingApp.
 ```bash
 #####################################################
 #### some of the most useful dotnet cli commands ####
-#####################################################ß
+#####################################################
 dotnet -h # get help about common commands
 dotnet command -h # help about specified command like parameters
 dotnet --info # info about dotnet installations on the machine
@@ -26,10 +26,11 @@ dotnet watch run # runs with a file watcher
 
 dotnet dev-certs https --trust # required for your browser to trust api address
 
-dotnet tool install <TOOLNAME> # installs other cßli extensions, tools
-#################
-## dotnet ef ####
-#################
+dotnet tool install <TOOLNAME> # installs other cli extensions, tools
+
+###############
+## dotnet ef ##
+###############
 dotnet ef migrations add <MIGNAME> # creates a migration you can use -o to specify output directory
 dotnet ef database update # updates db content using migrations
 ```
@@ -46,9 +47,9 @@ dotnet sln add API # adds project to the solution we created
 
 * **F1:** command palette, **Ctrl+":** terminal 
 * disable auto save, exclude `**/obj and **/bin` folders in user settings, disable compact folders, add code command to path
-* **Extensions:** [C#](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp) , [C# Extensions](https://marketplace.visualstudio.com/items?itemName=kreativ-software.csharpextensions) , [NuGet Gallery](https://marketplace.visualstudio.com/items?itemName=patcx.vscode-nuget-gallery) , [SQLite](https://marketplace.visualstudio.com/items?itemName=alexcvzz.vscode-sqlite)
+* **Extensions:** [C#](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp) , [C# Extensions](https://marketplace.visualstudio.com/items?itemName=kreativ-software.csharpextensions) , [NuGet Gallery](https://marketplace.visualstudio.com/items?itemName=patcx.vscode-nuget-gallery) , [SQLite](https://marketplace.visualstudio.com/items?itemName=alexcvzz.vscode-sqlite) , [MSBuild project tools]( https://marketplace.visualstudio.com/items?itemName=tintoy.msbuild-project-tools) , [vscode-solution-explorer](https://marketplace.visualstudio.com/items?itemName=fernandoescolar.vscode-solution-explorer)
 * from command palette type generate assets and click it. (appsettings.json and appsettings.Development.json files should be created after this operation) 
-* troubleshooting debugging problems: downgrade c# extension, in settings,   "omnisharp.useGlobalMono": "always", "omnisharp.path": "latest",
+* troubleshooting debugging problems: downgrade c# extension, in settings,   "omnisharp.useGlobalMono": "always", "omnisharp.path": "latest"
 
 ### API Project Files
 
@@ -98,19 +99,19 @@ dotnet run
 * use it in Startup.cs
 
 ```cs
-//initialize _config
+// initialize _config
       private readonly IConfiguration _config;
         public Startup(IConfiguration config)
         {
             _config = config;
         }
-//...
-//...
+// ...
+// ...
 public void ConfigureServices(IServiceCollection services){
             services.AddDbContext<DataContext>(options =>
             {                options.UseSqlite(_config.GetConnectionString("DefaultConnection"));
             });
-//.....
+// .....
 ```
 
 * **install dotnet-ef  in cli **=> 
@@ -150,17 +151,48 @@ INSERT INTO AppUsers (Id, UserName) VALUES (1,"Bob");
 some action examples
 
 ```cs
-        [HttpGet]
-        public ActionResult<IEnumerable<AppUser>> GetUsers()
-        {
-            return _context.AppUsers.ToList();
-        }
+[HttpGet]
+public ActionResult<IEnumerable<AppUser>> GetUsers()
+{
+    return _context.AppUsers.ToList();
+}
 
-        // api/users/1
-        [HttpGet("{id}")]
-        public ActionResult<AppUser> GetUsers(int id)
-        {
-            return _context.AppUsers.Find(id);
-        } 
+// api/users/1
+[HttpGet("{id}")]
+public ActionResult<AppUser> GetUsers(int id)
+{
+    return _context.AppUsers.Find(id);
+} 
 ```
 
+### Making our code Async
+
+* syntax: `async Task<YOURRETURNTYPE> YourAction` and return await ....ToListAsync(),FindAsync....
+
+* example:
+
+  ```cs
+  [HttpGet]
+  public async Task<ActionResult<IEnumerable<AppUser>>> GetUsers()
+  {
+      return await _context.AppUsers.ToListAsync();
+  }
+  ```
+
+## 2 - Creating the Angular Client
+
+### angular-cli
+
+* install with `npm install -g @angular/cli`
+
+```bash
+######################################################
+#### some of the most useful angular cli commands ####
+######################################################
+ng new <APPNAME> # create an angular app
+ng serve # compiles and serves the app on machine
+```
+
+### Required VS Code Extensions for Angular Development
+
+[Angular Language Service](https://marketplace.visualstudio.com/items?itemName=Angular.ng-template) , [Angular Snippets](https://marketplace.visualstudio.com/items?itemName=johnpapa.Angular2) , [Bracket Pair Colorizer 2](https://marketplace.visualstudio.com/items?itemName=CoenraadS.bracket-pair-colorizer-2)
