@@ -1,6 +1,6 @@
-# NET 5.0 & Angular Application Project
+# NET 5.0 & Angular App Project
 
-This is a project for learning purposes.
+This is a project for learning purposes named DatingApp.
 
 ## 1 - Creating the .Net API
 
@@ -9,7 +9,9 @@ This is a project for learning purposes.
 [check my blog post to get some basic information on bash](https://berkctezc.medium.com/bash-komutlar%C4%B1-47a0811260e3)
 
 ```bash
-# some of the most useful dotnet commands
+#####################################################
+#### some of the most useful dotnet cli commands ####
+#####################################################ß
 dotnet -h # get help about common commands
 dotnet command -h # help about specified command like parameters
 dotnet --info # info about dotnet installations on the machine
@@ -17,12 +19,19 @@ dotnet --info # info about dotnet installations on the machine
 dotnet new # create a new project
 dotnet new -l # lists templates for new project
 dotnet sln # modify vs solution file
-
+ß
 dotnet run # runs the project in pwd
 dotnet build # build the project in pwd
 dotnet watch run # runs with a file watcher
 
 dotnet dev-certs https --trust # required for your browser to trust api address
+
+dotnet tool install <TOOLNAME> # installs other cßli extensions, tools
+#################
+## dotnet ef ####
+#################
+dotnet ef migrations add <MIGNAME> # creates a migration you can use -o to specify output directory
+dotnet ef database update # updates db content using migrations
 ```
 
 for our project we are going to run
@@ -37,7 +46,7 @@ dotnet sln add API # adds project to the solution we created
 
 * **F1:** command palette, **Ctrl+":** terminal 
 * disable auto save, exclude `**/obj and **/bin` folders in user settings, disable compact folders, add code command to path
-* **Extensions:** [C#](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp) , [C# Extensions](https://marketplace.visualstudio.com/items?itemName=kreativ-software.csharpextensions) , [NuGet Gallery](https://marketplace.visualstudio.com/items?itemName=patcx.vscode-nuget-gallery)
+* **Extensions:** [C#](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp) , [C# Extensions](https://marketplace.visualstudio.com/items?itemName=kreativ-software.csharpextensions) , [NuGet Gallery](https://marketplace.visualstudio.com/items?itemName=patcx.vscode-nuget-gallery) , [SQLite](https://marketplace.visualstudio.com/items?itemName=alexcvzz.vscode-sqlite)
 * from command palette type generate assets and click it. (appsettings.json and appsettings.Development.json files should be created after this operation) 
 * troubleshooting debugging problems: downgrade c# extension, in settings,   "omnisharp.useGlobalMono": "always", "omnisharp.path": "latest",
 
@@ -80,11 +89,11 @@ dotnet run
 
 * add connection string to appsettings.Development.json
 
-```cs
-   "ConnectionStrings": {
-      "DefaultConnection":"Data source=datingapp.db"
-   }, 
-```
+    ```cs
+       "ConnectionStrings": {
+          "DefaultConnection":"Data source=datingapp.db"
+       }, 
+    ```
 
 * use it in Startup.cs
 
@@ -118,5 +127,17 @@ public void ConfigureServices(IServiceCollection services){
   dotnet ef migrations add InitialCreate -o Data/Migrations # -o specifies directory
   ```
 
-  
+
+* Update database
+
+ ```bash
+  dotnet ef database update
+ ```
+
+* Use sqlite extension to take a look at the sqlite db with F1: Sqlite open database
+* right click and click new query insert to add some data to db
+
+```sqlite
+INSERT INTO AppUsers (Id, UserName) VALUES (1,"Bob");
+```
 
