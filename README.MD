@@ -39,6 +39,7 @@ dotnet sln add API # adds project to the solution we created
 * disable auto save, exclude `**/obj and **/bin` folders in user settings, disable compact folders, add code command to path
 * **Extensions:** [C#](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp) , [C# Extensions](https://marketplace.visualstudio.com/items?itemName=kreativ-software.csharpextensions) , [NuGet Gallery](https://marketplace.visualstudio.com/items?itemName=patcx.vscode-nuget-gallery)
 * from command palette type generate assets and click it. (appsettings.json and appsettings.Development.json files should be created after this operation) 
+* troubleshooting debugging problems: downgrade c# extension, in settings,   "omnisharp.useGlobalMono": "always", "omnisharp.path": "latest",
 
 ### API Project Files
 
@@ -75,8 +76,47 @@ dotnet run
 
   ```cs
   services.AddDbContext<DataContext>(options=>{   options.UseSqlite("Connection String");});
-  
-  
+  ```
+
+* add connection string to appsettings.Development.json
+
+```cs
+   "ConnectionStrings": {
+      "DefaultConnection":"Data source=datingapp.db"
+   }, 
+```
+
+* use it in Startup.cs
+
+```cs
+//initialize _config
+      private readonly IConfiguration _config;
+        public Startup(IConfiguration config)
+        {
+            _config = config;
+        }
+//...
+//...
+public void ConfigureServices(IServiceCollection services){
+            services.AddDbContext<DataContext>(options =>
+            {                options.UseSqlite(_config.GetConnectionString("DefaultConnection"));
+            });
+//.....
+```
+
+* **install dotnet-ef  in cli **=> 
+
+  ```bash
+  dotnet tool install --global dotnet-ef # you can specify a version by --version
+  ```
+
+* install **EntityFrameworkCore.Design** to API project with NuGet gallery
+
+* Create a migration
+
+  ```bash
+  dotnet ef migrations add InitialCreate -o Data/Migrations # -o specifies directory
   ```
 
   
+
