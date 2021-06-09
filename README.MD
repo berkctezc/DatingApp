@@ -134,10 +134,33 @@ public void ConfigureServices(IServiceCollection services){
   dotnet ef database update
  ```
 
-* Use sqlite extension to take a look at the sqlite db with F1: Sqlite open database
+* Use sqlite extension to take a look at the sqlite db with F1: SQLite open database
 * right click and click new query insert to add some data to db
 
 ```sqlite
 INSERT INTO AppUsers (Id, UserName) VALUES (1,"Bob");
+```
+
+### Adding an API Controller
+
+* in Controller folder create your controller like **UsersController.cs**
+* inherit it from ControllerBase and add **[ApiController]** and **[Route("api/[controller]")]** annotations
+* Generate Constructor and initialize DataContext field from parameter
+
+some action examples
+
+```cs
+        [HttpGet]
+        public ActionResult<IEnumerable<AppUser>> GetUsers()
+        {
+            return _context.AppUsers.ToList();
+        }
+
+        // api/users/1
+        [HttpGet("{id}")]
+        public ActionResult<AppUser> GetUsers(int id)
+        {
+            return _context.AppUsers.Find(id);
+        } 
 ```
 
