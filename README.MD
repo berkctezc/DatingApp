@@ -45,11 +45,11 @@ dotnet sln add API # adds project to the solution we created
 
 ### Required VS Code Extensions & Tips
 
-* **F1:** command palette, **Ctrl+":** terminal 
-* disable auto save, exclude `**/obj and **/bin` folders in user settings, disable compact folders, add code command to path
-* **Extensions:** [C#](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp) , [C# Extensions](https://marketplace.visualstudio.com/items?itemName=kreativ-software.csharpextensions) , [NuGet Gallery](https://marketplace.visualstudio.com/items?itemName=patcx.vscode-nuget-gallery) , [SQLite](https://marketplace.visualstudio.com/items?itemName=alexcvzz.vscode-sqlite) , [MSBuild project tools]( https://marketplace.visualstudio.com/items?itemName=tintoy.msbuild-project-tools) , [vscode-solution-explorer](https://marketplace.visualstudio.com/items?itemName=fernandoescolar.vscode-solution-explorer)
-* from command palette type generate assets and click it. (appsettings.json and appsettings.Development.json files should be created after this operation) 
-* troubleshooting debugging problems: downgrade c# extension, in settings,   "omnisharp.useGlobalMono": "always", "omnisharp.path": "latest"
+- **F1:** command palette, **Ctrl+":** terminal
+- disable auto save, exclude `**/obj and **/bin` folders in user settings, disable compact folders, add code command to path
+- **Extensions:** [C#](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp) , [C# Extensions](https://marketplace.visualstudio.com/items?itemName=kreativ-software.csharpextensions) , [NuGet Gallery](https://marketplace.visualstudio.com/items?itemName=patcx.vscode-nuget-gallery) , [SQLite](https://marketplace.visualstudio.com/items?itemName=alexcvzz.vscode-sqlite) , [MSBuild project tools](https://marketplace.visualstudio.com/items?itemName=tintoy.msbuild-project-tools) , [vscode-solution-explorer](https://marketplace.visualstudio.com/items?itemName=fernandoescolar.vscode-solution-explorer)
+- from command palette type generate assets and click it. (appsettings.json and appsettings.Development.json files should be created after this operation)
+- troubleshooting debugging problems: downgrade c# extension, in settings, "omnisharp.useGlobalMono": "always", "omnisharp.path": "latest"
 
 ### API Project Files
 
@@ -58,45 +58,45 @@ cd API
 dotnet run
 ```
 
-* access in https://localhost:5001/Controller , 
-* after running the project dotnet looks for Main method (in Program.cs) and the main method calls CreateHostBuilder. We could do some configuration in this method. CreateHostBuilder uses our Startup.cs file as startup. And we could also make configurations there.
-* in appsettings.Development.json change `"Microsoft": "Warning"` to `"Microsoft": "Information"` to see more info data on terminal output
+- access in https://localhost:5001/Controller ,
+- after running the project dotnet looks for Main method (in Program.cs) and the main method calls CreateHostBuilder. We could do some configuration in this method. CreateHostBuilder uses our Startup.cs file as startup. And we could also make configurations there.
+- in appsettings.Development.json change `"Microsoft": "Warning"` to `"Microsoft": "Information"` to see more info data on terminal output
 
-* Startup.cs
-  * **ConfigureServices:** Dependency injection container. If we want to make a class or a service available to other areas of our application, we can add them inside ConfigureServices method.
-  * **Configure:** Used to configure http request pipeline. Our requests goes through a series of middleware in this method.
-    * `env.IsDevelopment > app.UseDeveloperExceptinPage()` : if we are in development mode, when application encounters a problem then we use the developer exception page.
-    * `app.HttpsRedirection()`: Redirects HTTP to HTTPS
-    * `app.UseRouting()`: Routing our actions to access them
-    * `app.UseAuthorization()`: Authorization for our actions
-    * `app.UseEndpoints(endpoints=>{endpoints.MapControllers();})`: Maps actions  in controllers in controllers folder 
-* **Properties/launchSettings.json**: configure launch options of project
+- Startup.cs
+  - **ConfigureServices:** Dependency injection container. If we want to make a class or a service available to other areas of our application, we can add them inside ConfigureServices method.
+  - **Configure:** Used to configure http request pipeline. Our requests goes through a series of middleware in this method.
+    - `env.IsDevelopment > app.UseDeveloperExceptinPage()` : if we are in development mode, when application encounters a problem then we use the developer exception page.
+    - `app.HttpsRedirection()`: Redirects HTTP to HTTPS
+    - `app.UseRouting()`: Routing our actions to access them
+    - `app.UseAuthorization()`: Authorization for our actions
+    - `app.UseEndpoints(endpoints=>{endpoints.MapControllers();})`: Maps actions in controllers in controllers folder
+- **Properties/launchSettings.json**: configure launch options of project
 
 ### Getting to work
 
-* Create Entities folder and create an Entity
+- Create Entities folder and create an Entity
 
-* **Entity Framework:** An Object Relational Mapper that translates our code into SQL and update our tables in the database. EF features are Querying, Change Tracking, Saving, Concurrency, Caching, Built-in conventions, Configurations, Migrations
+- **Entity Framework:** An Object Relational Mapper that translates our code into SQL and update our tables in the database. EF features are Querying, Change Tracking, Saving, Concurrency, Caching, Built-in conventions, Configurations, Migrations
 
-* Use NuGet Gallery to install Microsoft.EntityFrameworkCore (F1: >Open NuGet Gallery)
+- Use NuGet Gallery to install Microsoft.EntityFrameworkCore (F1: >Open NuGet Gallery)
 
-* Create Data folder and inside Data Create Context file that implements DbContext
+- Create Data folder and inside Data Create Context file that implements DbContext
 
-* add to services in ConfigureServices >      
+- add to services in ConfigureServices >
 
   ```cs
   services.AddDbContext<DataContext>(options=>{   options.UseSqlite("Connection String");});
   ```
 
-* add connection string to appsettings.Development.json
+- add connection string to appsettings.Development.json
 
-    ```cs
-       "ConnectionStrings": {
-          "DefaultConnection":"Data source=datingapp.db"
-       }, 
-    ```
+  ```cs
+     "ConnectionStrings": {
+        "DefaultConnection":"Data source=datingapp.db"
+     },
+  ```
 
-* use it in Startup.cs
+- use it in Startup.cs
 
 ```cs
 // initialize _config
@@ -114,29 +114,28 @@ public void ConfigureServices(IServiceCollection services){
 // .....
 ```
 
-* **install dotnet-ef  in cli **=> 
+- **install dotnet-ef in cli **=>
 
   ```bash
   dotnet tool install --global dotnet-ef # you can specify a version by --version
   ```
 
-* install **EntityFrameworkCore.Design** to API project with NuGet gallery
+- install **EntityFrameworkCore.Design** to API project with NuGet gallery
 
-* Create a migration
+- Create a migration
 
   ```bash
   dotnet ef migrations add InitialCreate -o Data/Migrations # -o specifies directory
   ```
 
+- Update database
 
-* Update database
+```bash
+ dotnet ef database update
+```
 
- ```bash
-  dotnet ef database update
- ```
-
-* Use sqlite extension to take a look at the sqlite db with F1: SQLite open database
-* right click and click new query insert to add some data to db
+- Use sqlite extension to take a look at the sqlite db with F1: SQLite open database
+- right click and click new query insert to add some data to db
 
 ```sqlite
 INSERT INTO AppUsers (Id, UserName) VALUES (1,"Bob");
@@ -144,9 +143,9 @@ INSERT INTO AppUsers (Id, UserName) VALUES (1,"Bob");
 
 ### Adding an API Controller
 
-* in Controller folder create your controller like **UsersController.cs**
-* inherit it from ControllerBase and add **[ApiController]** and **[Route("api/[controller]")]** annotations
-* Generate Constructor and initialize DataContext field from parameter
+- in Controller folder create your controller like **UsersController.cs**
+- inherit it from ControllerBase and add **[ApiController]** and **[Route("api/[controller]")]** annotations
+- Generate Constructor and initialize DataContext field from parameter
 
 some action examples
 
@@ -162,14 +161,14 @@ public ActionResult<IEnumerable<AppUser>> GetUsers()
 public ActionResult<AppUser> GetUsers(int id)
 {
     return _context.AppUsers.Find(id);
-} 
+}
 ```
 
 ### Making our code Async
 
-* syntax: `async Task<YOURRETURNTYPE> YourAction` and return await ....ToListAsync(),FindAsync....
+- syntax: `async Task<YOURRETURNTYPE> YourAction` and return await ....ToListAsync(),FindAsync....
 
-* example:
+- example:
 
   ```cs
   [HttpGet]
@@ -183,7 +182,7 @@ public ActionResult<AppUser> GetUsers(int id)
 
 ### angular-cli
 
-* install with `npm install -g @angular/cli`
+- install with `npm install -g @angular/cli`
 
 ```bash
 ######################################################
@@ -191,8 +190,115 @@ public ActionResult<AppUser> GetUsers(int id)
 ######################################################
 ng new <APPNAME> # create an angular app
 ng serve # compiles and serves the app on machine
+ng add <npp_packages> # installs npm package and configures the project
 ```
 
 ### Required VS Code Extensions for Angular Development
 
 [Angular Language Service](https://marketplace.visualstudio.com/items?itemName=Angular.ng-template) , [Angular Snippets](https://marketplace.visualstudio.com/items?itemName=johnpapa.Angular2) , [Bracket Pair Colorizer 2](https://marketplace.visualstudio.com/items?itemName=CoenraadS.bracket-pair-colorizer-2)
+
+### HTTP Requests in Angular
+
+- declare HttpClientModule import in **app.module.ts**
+
+```typescript
+import { HttpClientModule } from '@angular/common/http'; //import httpclientmodule
+//.....
+@NgModule({
+    //...
+      imports: [
+	//...
+    HttpClientModule //add to imports
+  ],
+})
+```
+
+- inject in constructor of **app.component.ts** and call in a function
+
+```ts
+export class AppComponent implements OnInit {
+  // implemented OnInit
+  title = "The Dating App";
+  users: any; // created a variable to hold the request response
+
+  constructor(private http: HttpClient) {}
+
+  ngOnInit() {
+    this.getUsers();
+  }
+
+  getUsers() {
+    this.http
+      .get("https://localhost:5001/api/users") // make request
+      .subscribe(
+        // observe
+        (response) => {
+          this.users = response;
+        }, // paramaters for return situations of request
+        (error) => {
+          console.log(error);
+        }
+      );
+  }
+}
+```
+
+- Allow CORS in Backend **Startup.cs > ConfigureServices and Configure**
+
+```cs
+public void ConfigureServices(IServiceCollection services)
+        {
+        //...
+        services.AddCors();
+    }
+public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        {
+    //..
+ app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200")); // angular app 
+    //..
+}
+```
+
+* Display in **app.component.html**
+
+```html
+<ul>
+  <li *ngFor="let user of users">{{ user.id }} - {{ user.userName }}</li>
+</ul>
+```
+
+### Adding bootstrap and font-awesome
+
+```bash
+ng add ngx-bootstrap # install with configurations
+
+# or
+
+npm install ngx-bootstrap
+npm install bootstrap
+# and add into angular.json styles array,
+# add into imports in app.module.ts
+```
+
+* angular.json
+
+```json
+"styles": [
+    "src/styles.css",
+    "./node_modules/bootstrap/dist/css/bootstrap.min.css",
+    "./node_modules/ngx-bootstrap/datepicker/bs-datepicker.css"
+],
+```
+
+* app.module.ts
+
+```ts
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
+//...
+  imports: [
+//...
+    BrowserAnimationsModule
+  ],
+```
+
+  
