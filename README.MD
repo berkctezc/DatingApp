@@ -237,8 +237,7 @@ export class AppComponent implements OnInit {
         }, // paramaters for return situations of request
         (error) => {
           console.log(error);
-        }
-      );
+        });
   }
 }
 ```
@@ -247,14 +246,14 @@ export class AppComponent implements OnInit {
 
 ```cs
 public void ConfigureServices(IServiceCollection services)
-        {
-        //...
-        services.AddCors();
-    }
+{
+    //...
+    services.AddCors();
+}
 public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
+{
     //..
- app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200")); // angular app 
+    app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200")); // angular app 
     //..
 }
 ```
@@ -263,7 +262,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 ```html
 <ul>
-  <li *ngFor="let user of users">{{ user.id }} - {{ user.userName }}</li>
+    <li *ngFor="let user of users">{{ user.id }} - {{ user.userName }}</li>
 </ul>
 ```
 
@@ -302,4 +301,22 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
 ```
 
 ###  HTTPS in Angular
+
+* generate ssl keys with openssl
+
+  ```bash
+  openssl req -newkey rsa:2048 -nodes -keyout server.key -x509 -days 365 -out server.crt  
+  ```
+
+* put crt and key files into folder named ssl inside angular client folder.
+
+* add to angular.json serve>options
+
+  ```json
+  "options": {
+      "sslCert": "./ssl/server.crt",
+      "sslKey": "./ssl/server.key",
+      "ssl": true
+  },
+  ```
 
