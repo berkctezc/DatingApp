@@ -301,4 +301,5 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
   ],
 ```
 
-  
+###  HTTPS in Angular
+
