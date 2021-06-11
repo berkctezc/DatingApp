@@ -373,34 +373,34 @@ public class RegisterDto
 * In **AccountController > Register**
 
 ```cs
-  [HttpPost("register")]
-        public async Task<ActionResult<AppUser>> Register(RegisterDto registerDto)
-        {
-            if (await UserExists(registerDto.Username)) return BadRequest("Username is taken");
+[HttpPost("register")]
+public async Task<ActionResult<AppUser>> Register(RegisterDto registerDto)
+{
+    if (await UserExists(registerDto.Username)) return BadRequest("Username is taken");
 
-            using var hmac = new HMACSHA512();
+    using var hmac = new HMACSHA512();
 
-            var user = new AppUser
-            {
-                UserName = registerDto.Username.ToLower(),
-                PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password)),
-                PasswordSalt = hmac.Key
-            };
+    var user = new AppUser
+    {
+        UserName = registerDto.Username.ToLower(),
+        PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password)),
+        PasswordSalt = hmac.Key
+    };
 
-            _context.Add(user);
-            await _context.SaveChangesAsync();
+    _context.Add(user);
+    await _context.SaveChangesAsync();
 
-            return user;
-        }
+    return user;
+}
 ```
 
 * Also lets add a userexists method to check if username is taken or not
 
 ```cs
-        private async Task<bool> UserExists(string username)
-        {
-            return await _context.AppUsers.AnyAsync(x => x.UserName == username.ToLower());
-        }
+private async Task<bool> UserExists(string username)
+{
+    return await _context.AppUsers.AnyAsync(x => x.UserName == username.ToLower());
+}
 ```
 
 ### Adding Validation (BE)
@@ -408,9 +408,36 @@ public class RegisterDto
 * It is a good starting point to add validation in our DTOs
 
 ```cs
-        [Required]
-        public string Username { get; set; }
-        [Required]
-        public string Password { get; set; }
+[Required]
+public string Username { get; set; }
+[Required]
+public string Password { get; set; }
+```
+
+### Adding a login endpoint (BE)
+
+```cs
+        [HttpPost("login")]
+        public async Task<ActionResult<AppUser>> Login(LoginDto loginDto)
+        {
+            // check if this user exists. if we have user with that username then assign it to user, if not assign null to user
+            var user = await _context.AppUsers
+            .SingleOrDefaultAsync(x => x.UserName == loginDto.Username);
+
+            // if null return 401
+            if (user == null) return Unauthorized("Invalid Username");
+
+            // if user is valid then calculate salt and hash to compare with db salt and hash
+            using var hmac = new HMACSHA512(user.PasswordSalt);
+
+            var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(loginDto.Password));
+
+            for (int i = 0; i < computedHash.Length; i++)
+            {
+                if (computedHash[i] != user.PasswordHash[i]) return Unauthorized("Invalid Password");
+            }
+
+            return user;
+        }
 ```
 
