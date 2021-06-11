@@ -253,6 +253,7 @@ public void ConfigureServices(IServiceCollection services)
 public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 {
     //..
+   // After UseRouting()
     app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200")); // angular app 
     //..
 }
@@ -443,7 +444,7 @@ public string Password { get; set; }
         }
 ```
 
-### Adding a Token Service (JWT)
+### Adding a Token Service - JWT (BE)
 
 * Add ITokenService interface into folder name Interfaces and implement it in services folder
 
@@ -568,5 +569,37 @@ public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
 //..  
 "TokenKey":"super secret unguessable key",
 //..
+```
+
+### Adding authentication middleware (BE)
+
+* Install NuGet package **Microsoft.AspNetCore.Authentication.JwtBearer**
+
+* In Startup add to **Configure** and **ConfigureServices**,
+
+```cs
+        public void ConfigureServices(IServiceCollection services)
+        { 
+            //...
+ services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["TokenKey"])),
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                };
+            });
+        }
+  public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        {
+      //...
+      // After Cors
+app.UseAuthentication();
+      // Before Authorization
+      //...
+}
 ```
 
