@@ -2,7 +2,7 @@
 
 This is a project for learning purposes named DatingApp.
 
-## 1 - Creating the .Net API
+## 1 - Creating the .Net API (BE)
 
 ### dotnet-cli
 
@@ -63,8 +63,8 @@ dotnet run
 - in appsettings.Development.json change `"Microsoft": "Warning"` to `"Microsoft": "Information"` to see more info data on terminal output
 
 - Startup.cs
-  - **ConfigureServices:** Dependency injection container. If we want to make a class or a service available to other areas of our application, we can add them inside ConfigureServices method.
-  - **Configure:** Used to configure http request pipeline. Our requests goes through a series of middleware in this method.
+  - **ConfigureServices:** Dependency injection container. If we want to make a class or a service available to other areas of our application, we can add them inside ConfigureServices method. *(order does not matter)*
+  - **Configure:** Used to configure http request pipeline. Our requests goes through a series of middleware in this method. *(order matters)*
     - `env.IsDevelopment > app.UseDeveloperExceptinPage()` : if we are in development mode, when application encounters a problem then we use the developer exception page.
     - `app.HttpsRedirection()`: Redirects HTTP to HTTPS
     - `app.UseRouting()`: Routing our actions to access them
@@ -178,7 +178,7 @@ public ActionResult<AppUser> GetUsers(int id)
   }
   ```
 
-## 2 - Creating the Angular Client
+## 2 - Creating the Angular Client (FE)
 
 ### angular-cli
 
@@ -321,9 +321,9 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
   },
   ```
 
-## 3 - Authentication Basics
+## 3 - Authentication Basics (BE)
 
-### Account Controller with a Register Endpoint (BE)
+### Account Controller with a Register Endpoint
 
 ```cs
 public class AccountController : BaseApiController
@@ -356,12 +356,12 @@ public class AccountController : BaseApiController
 
 * current controller only accepts requests with query string and not in body. because it cannot map parameters
 
-### Using Debugger  (BE)
+### Using Debugger
 
 * After generating assets, set run and debug to attach and add a breakpoint
 * press F5 and select API to debug the app
 
-### DTOs (BE)
+### DTOs
 
 * Created a DTO for registration with only the data we need for registration
 
@@ -406,7 +406,7 @@ private async Task<bool> UserExists(string username)
 }
 ```
 
-### Adding Validation (BE)
+### Adding Validation
 
 * It is a good starting point to add validation in our DTOs
 
@@ -417,7 +417,7 @@ public string Username { get; set; }
 public string Password { get; set; }
 ```
 
-### Adding a login endpoint (BE)
+### Adding a login endpoint
 
 ```cs
         [HttpPost("login")]
@@ -444,7 +444,7 @@ public string Password { get; set; }
         }
 ```
 
-### Adding a Token Service - JWT (BE)
+### Adding a Token Service - JWT
 
 * Add ITokenService interface into folder name Interfaces and implement it in services folder
 
@@ -477,7 +477,7 @@ public string Password { get; set; }
    services.AddScoped<ITokenService, TokenService>();
 ```
 
-### Adding Create Token Logic (BE) 
+### Adding Create Token Logic 
 
 * Install NuGet package System.IdentityModel.Tokens.Jwt
 * Implement logic
@@ -516,7 +516,7 @@ public string Password { get; set; }
     }
 ```
 
-### Creating a User DTO and returning the token (BE)
+### Creating a User DTO and returning the token
 
 * Inject Token Service in Controller
 
@@ -571,7 +571,7 @@ public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
 //..
 ```
 
-### Adding authentication middleware (BE)
+### Adding authentication middleware
 
 * Install NuGet package **Microsoft.AspNetCore.Authentication.JwtBearer**
 
@@ -600,6 +600,66 @@ public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
 app.UseAuthentication();
       // Before Authorization
       //...
+}
+```
+
+### Adding extension methods
+
+* Move **Application Services** from **Startup** into **ApplicationServiceExtensions** extension in **Extensions** folder and reference it in **Startup**
+
+```cs
+namespace API.Extensions
+{
+    public static class ApplicationServiceExtensions
+    {
+        public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
+        {
+            services.AddScoped<ITokenService, TokenService>();
+            services.AddDbContext<DataContext>(options =>
+            {
+                options.UseSqlite(config.GetConnectionString("DefaultConnection"));
+            });
+
+            return services;
+        }
+    }
+}
+```
+
+* Move **Identity Services** from **Startup** into **IdentityServiceExtensions** extension in **Extensions** folder and reference it in **Startup**
+
+```cs
+namespace API.Extensions
+{
+    public static class IdentityServiceExtensions
+    {
+        public static IServiceCollection AddIdentityServices(this IServiceCollection services, IConfiguration config)
+        {
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"])),
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                };
+            });
+            return services;
+        }
+    }
+}
+```
+
+* Usage of extensions in **Startup.cs**
+
+```cs
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddApplicationServices(_config);
+    //...
+    services.AddIdentityServices(_config);
 }
 ```
 
