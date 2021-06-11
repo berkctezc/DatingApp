@@ -74,15 +74,15 @@ dotnet run
 
 ### Getting to work
 
-- Create Entities folder and create an Entity
+- Create **Entities** folder and create an Entity
 
 - **Entity Framework:** An Object Relational Mapper that translates our code into SQL and update our tables in the database. EF features are Querying, Change Tracking, Saving, Concurrency, Caching, Built-in conventions, Configurations, Migrations
 
-- Use NuGet Gallery to install Microsoft.EntityFrameworkCore (F1: >Open NuGet Gallery)
+- Use NuGet Gallery to install **Microsoft.EntityFrameworkCore** (F1: >Open NuGet Gallery)
 
-- Create Data folder and inside Data Create Context file that implements DbContext
+- Create **Data** folder and inside Data Create Context file that implements **DbContext**
 
-- add to services in ConfigureServices >
+- add to services in **ConfigureServices** >
 
   ```cs
   services.AddDbContext<DataContext>(options=>{   options.UseSqlite("Connection String");});
@@ -197,7 +197,7 @@ ng add <npp_packages> # installs npm package and configures the project
 
 [Angular Language Service](https://marketplace.visualstudio.com/items?itemName=Angular.ng-template) , [Angular Snippets](https://marketplace.visualstudio.com/items?itemName=johnpapa.Angular2) , [Bracket Pair Colorizer 2](https://marketplace.visualstudio.com/items?itemName=CoenraadS.bracket-pair-colorizer-2)
 
-### HTTP Requests in Angular
+### HTTP Requests in Angular (FE+BE)
 
 - declare HttpClientModule import in **app.module.ts**
 
@@ -266,7 +266,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 </ul>
 ```
 
-### Adding bootstrap and font-awesome
+### Adding bootstrap and font-awesome (FE)
 
 ```bash
 ng add ngx-bootstrap # install with configurations
@@ -300,7 +300,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
   ],
 ```
 
-###  HTTPS in Angular
+###  HTTPS in Angular (FE)
 
 * generate ssl keys with openssl
 
@@ -319,4 +319,98 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
       "ssl": true
   },
   ```
+
+### Account Controller with a Register Endpoint (BE)
+
+```cs
+public class AccountController : BaseApiController
+{
+    private readonly DataContext _context;
+    public AccountController(DataContext context)
+    {
+        _context = context;
+    }
+
+    [HttpPost("register")]
+    public async Task<ActionResult<AppUser>> Register(string username, string password)
+    {
+        using var hmac = new HMACSHA512();
+
+        var user = new AppUser
+        {
+            UserName = username,
+            PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password)),
+            PasswordSalt = hmac.Key
+        };
+
+        _context.Add(user);
+        await _context.SaveChangesAsync();
+
+        return user;
+    }
+}
+```
+
+* current controller only accepts requests with query string and not in body. because it cannot map parameters
+
+### Using Debugger  (BE)
+
+* After generating assets, set run and debug to attach and add a breakpoint
+* press F5 and select API to debug the app
+
+### DTOs (BE)
+
+* Created a DTO for registration with only the data we need for registration
+
+```cs
+public class RegisterDto
+{
+    public string Username { get; set; }
+    public string Password { get; set; }
+}
+```
+
+* In **AccountController > Register**
+
+```cs
+  [HttpPost("register")]
+        public async Task<ActionResult<AppUser>> Register(RegisterDto registerDto)
+        {
+            if (await UserExists(registerDto.Username)) return BadRequest("Username is taken");
+
+            using var hmac = new HMACSHA512();
+
+            var user = new AppUser
+            {
+                UserName = registerDto.Username.ToLower(),
+                PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password)),
+                PasswordSalt = hmac.Key
+            };
+
+            _context.Add(user);
+            await _context.SaveChangesAsync();
+
+            return user;
+        }
+```
+
+* Also lets add a userexists method to check if username is taken or not
+
+```cs
+        private async Task<bool> UserExists(string username)
+        {
+            return await _context.AppUsers.AnyAsync(x => x.UserName == username.ToLower());
+        }
+```
+
+### Adding Validation (BE)
+
+* It is a good starting point to add validation in our DTOs
+
+```cs
+        [Required]
+        public string Username { get; set; }
+        [Required]
+        public string Password { get; set; }
+```
 
