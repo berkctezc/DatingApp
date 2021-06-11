@@ -266,7 +266,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 </ul>
 ```
 
-### Adding bootstrap and font-awesome (FE)
+### Adding bootstrap and font-awesome
 
 ```bash
 ng add ngx-bootstrap # install with configurations
@@ -300,7 +300,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
   ],
 ```
 
-###  HTTPS in Angular (FE)
+###  HTTPS in Angular
 
 * generate ssl keys with openssl
 
@@ -319,6 +319,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
       "ssl": true
   },
   ```
+
+## 3 - Authentication Basics
 
 ### Account Controller with a Register Endpoint (BE)
 
@@ -485,7 +487,7 @@ public string Password { get; set; }
         private readonly SymmetricSecurityKey _key;
         public TokenService(IConfiguration config)
         {
-            _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"]));
+            _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"])); // from appsettings
         }
 
         public string CreateToken(AppUser user)
@@ -511,5 +513,60 @@ public string Password { get; set; }
             return tokenHandler.WriteToken(token);
         }
     }
+```
+
+### Creating a User DTO and returning the token (BE)
+
+* Inject Token Service in Controller
+
+```cs
+private readonly ITokenService _tokenService;
+public AccountController(DataContext context, ITokenService tokenService)
+{
+    _tokenService = tokenService;
+    _context = context;
+}
+```
+
+* Create a UserDto for returning after registrations and login operations
+
+```cs
+public class UserDto
+{
+    public string Username { get; set; }
+    public string Token { get; set; }
+}
+```
+
+* Update Register and Login Actions' return type
+
+```cs
+public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
+{
+    //....
+    return new UserDto
+    {
+        Username = user.UserName,
+        Token = _tokenService.CreateToken(user)
+    };
+}
+
+public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
+{
+    //....
+    return new UserDto
+    {
+        Username = user.UserName,
+        Token = _tokenService.CreateToken(user)
+    };
+}
+```
+
+* In appsettings.Development.json assign a key into TokenKey
+
+```json
+//..  
+"TokenKey":"super secret unguessable key",
+//..
 ```
 
