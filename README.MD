@@ -441,3 +441,36 @@ public string Password { get; set; }
         }
 ```
 
+### Adding a Token Service (JWT)
+
+* Add ITokenService interface into folder name Interfaces and implement it in services folder
+
+  ```cs
+  namespace API.Interfaces
+  {
+      public interface ITokenService
+      {
+          string CreateToken(AppUser user);
+      }
+  }
+  ```
+
+  ```cs
+  namespace API.Services
+  {
+      public class TokenService : ITokenService
+      {
+          public string CreateToken(AppUser user)
+          {
+              throw new System.NotImplementedException();
+          }
+      }
+  }
+  ```
+
+  * Add in **Startup>ConfigureServices**
+
+```cs
+   services.AddScoped<ITokenService, TokenService>();
+```
+
