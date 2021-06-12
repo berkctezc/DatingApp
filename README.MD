@@ -63,8 +63,8 @@ dotnet run
 - in appsettings.Development.json change `"Microsoft": "Warning"` to `"Microsoft": "Information"` to see more info data on terminal output
 
 - Startup.cs
-  - **ConfigureServices:** Dependency injection container. If we want to make a class or a service available to other areas of our application, we can add them inside ConfigureServices method. *(order does not matter)*
-  - **Configure:** Used to configure http request pipeline. Our requests goes through a series of middleware in this method. *(order matters)*
+  - **ConfigureServices:** Dependency injection container. If we want to make a class or a service available to other areas of our application, we can add them inside ConfigureServices method. _(order does not matter)_
+  - **Configure:** Used to configure http request pipeline. Our requests goes through a series of middleware in this method. _(order matters)_
     - `env.IsDevelopment > app.UseDeveloperExceptinPage()` : if we are in development mode, when application encounters a problem then we use the developer exception page.
     - `app.HttpsRedirection()`: Redirects HTTP to HTTPS
     - `app.UseRouting()`: Routing our actions to access them
@@ -191,6 +191,13 @@ public ActionResult<AppUser> GetUsers(int id)
 ng new <APPNAME> # create an angular app
 ng serve # compiles and serves the app on machine
 ng add <npp_packages> # installs npm package and configures the project
+
+ng g <schematics> # generate a schematics 
+ng g -h # get a list of available schematics
+# common ones
+ng g c # component
+ng g s # service 
+ng g p # pipe
 ```
 
 ### Required VS Code Extensions for Angular Development
@@ -237,7 +244,8 @@ export class AppComponent implements OnInit {
         }, // paramaters for return situations of request
         (error) => {
           console.log(error);
-        });
+        }
+      );
   }
 }
 ```
@@ -254,16 +262,16 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 {
     //..
    // After UseRouting()
-    app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200")); // angular app 
+    app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200", "https://localhost:4200")); // angular app
     //..
 }
 ```
 
-* Display in **app.component.html**
+- Display in **app.component.html**
 
 ```html
 <ul>
-    <li *ngFor="let user of users">{{ user.id }} - {{ user.userName }}</li>
+  <li *ngFor="let user of users">{{ user.id }} - {{ user.userName }}</li>
 </ul>
 ```
 
@@ -280,7 +288,7 @@ npm install bootstrap
 # add into imports in app.module.ts
 ```
 
-* angular.json
+- angular.json
 
 ```json
 "styles": [
@@ -290,7 +298,7 @@ npm install bootstrap
 ],
 ```
 
-* app.module.ts
+- app.module.ts
 
 ```ts
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
@@ -301,17 +309,17 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
   ],
 ```
 
-###  HTTPS in Angular
+### HTTPS in Angular
 
-* generate ssl keys with openssl
+- generate ssl keys with openssl
 
   ```bash
-  openssl req -newkey rsa:2048 -nodes -keyout server.key -x509 -days 365 -out server.crt  
+  openssl req -newkey rsa:2048 -nodes -keyout server.key -x509 -days 365 -out server.crt
   ```
 
-* put crt and key files into folder named ssl inside angular client folder.
+- put crt and key files into folder named ssl inside angular client folder.
 
-* add to angular.json serve>options
+- add to angular.json serve>options
 
   ```json
   "options": {
@@ -354,16 +362,16 @@ public class AccountController : BaseApiController
 }
 ```
 
-* current controller only accepts requests with query string and not in body. because it cannot map parameters
+- current controller only accepts requests with query string and not in body. because it cannot map parameters
 
 ### Using Debugger
 
-* After generating assets, set run and debug to attach and add a breakpoint
-* press F5 and select API to debug the app
+- After generating assets, set run and debug to attach and add a breakpoint
+- press F5 and select API to debug the app
 
 ### DTOs
 
-* Created a DTO for registration with only the data we need for registration
+- Created a DTO for registration with only the data we need for registration
 
 ```cs
 public class RegisterDto
@@ -373,7 +381,7 @@ public class RegisterDto
 }
 ```
 
-* In **AccountController > Register**
+- In **AccountController > Register**
 
 ```cs
 [HttpPost("register")]
@@ -397,7 +405,7 @@ public async Task<ActionResult<AppUser>> Register(RegisterDto registerDto)
 }
 ```
 
-* Also lets add a userexists method to check if username is taken or not
+- Also lets add a userexists method to check if username is taken or not
 
 ```cs
 private async Task<bool> UserExists(string username)
@@ -408,7 +416,7 @@ private async Task<bool> UserExists(string username)
 
 ### Adding Validation
 
-* It is a good starting point to add validation in our DTOs
+- It is a good starting point to add validation in our DTOs
 
 ```cs
 [Required]
@@ -446,7 +454,7 @@ public string Password { get; set; }
 
 ### Adding a Token Service - JWT
 
-* Add ITokenService interface into folder name Interfaces and implement it in services folder
+- Add ITokenService interface into folder name Interfaces and implement it in services folder
 
   ```cs
   namespace API.Interfaces
@@ -471,16 +479,16 @@ public string Password { get; set; }
   }
   ```
 
-  * Add in **Startup>ConfigureServices**
+  - Add in **Startup>ConfigureServices**
 
 ```cs
    services.AddScoped<ITokenService, TokenService>();
 ```
 
-### Adding Create Token Logic 
+### Adding Create Token Logic
 
-* Install NuGet package System.IdentityModel.Tokens.Jwt
-* Implement logic
+- Install NuGet package System.IdentityModel.Tokens.Jwt
+- Implement logic
 
 ```cs
     public class TokenService : ITokenService
@@ -518,7 +526,7 @@ public string Password { get; set; }
 
 ### Creating a User DTO and returning the token
 
-* Inject Token Service in Controller
+- Inject Token Service in Controller
 
 ```cs
 private readonly ITokenService _tokenService;
@@ -529,7 +537,7 @@ public AccountController(DataContext context, ITokenService tokenService)
 }
 ```
 
-* Create a UserDto for returning after registrations and login operations
+- Create a UserDto for returning after registrations and login operations
 
 ```cs
 public class UserDto
@@ -539,7 +547,7 @@ public class UserDto
 }
 ```
 
-* Update Register and Login Actions' return type
+- Update Register and Login Actions' return type
 
 ```cs
 public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
@@ -563,23 +571,23 @@ public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
 }
 ```
 
-* In appsettings.Development.json assign a key into TokenKey
+- In appsettings.Development.json assign a key into TokenKey
 
 ```json
-//..  
+//..
 "TokenKey":"super secret unguessable key",
 //..
 ```
 
 ### Adding authentication middleware
 
-* Install NuGet package **Microsoft.AspNetCore.Authentication.JwtBearer**
+- Install NuGet package **Microsoft.AspNetCore.Authentication.JwtBearer**
 
-* In Startup add to **Configure** and **ConfigureServices**,
+- In Startup add to **Configure** and **ConfigureServices**,
 
 ```cs
         public void ConfigureServices(IServiceCollection services)
-        { 
+        {
             //...
  services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
@@ -605,7 +613,7 @@ app.UseAuthentication();
 
 ### Adding extension methods
 
-* Move **Application Services** from **Startup** into **ApplicationServiceExtensions** extension in **Extensions** folder and reference it in **Startup**
+- Move **Application Services** from **Startup** into **ApplicationServiceExtensions** extension in **Extensions** folder and reference it in **Startup**
 
 ```cs
 namespace API.Extensions
@@ -626,7 +634,7 @@ namespace API.Extensions
 }
 ```
 
-* Move **Identity Services** from **Startup** into **IdentityServiceExtensions** extension in **Extensions** folder and reference it in **Startup**
+- Move **Identity Services** from **Startup** into **IdentityServiceExtensions** extension in **Extensions** folder and reference it in **Startup**
 
 ```cs
 namespace API.Extensions
@@ -652,7 +660,7 @@ namespace API.Extensions
 }
 ```
 
-* Usage of extensions in **Startup.cs**
+- Usage of extensions in **Startup.cs**
 
 ```cs
 public void ConfigureServices(IServiceCollection services)
@@ -661,5 +669,84 @@ public void ConfigureServices(IServiceCollection services)
     //...
     services.AddIdentityServices(_config);
 }
+```
+
+## 4 - Client Login and Register
+
+### Creating a navbar
+
+* Create navbar with angular cli
+
+```bash
+cd src/app
+ng g c nav --skip-tests
+```
+
+* After executing these commands NavComponent is added into declarations and imported. Also empty files created in a folder.
+* Fill html and add into app.component.html with `<app-nav>` tag.
+
+### Angular Template Forms
+
+* import **FormsModule** in **app.module.ts**
+* Getting data from template with Two way binding. create a empty model in **nav.component.ts** and a login function to test it.
+
+```typescript
+export class NavComponent implements OnInit {
+  model: any = {}
+  constructor() {}
+  ngOnInit(): void {}
+  login() {
+    console.log(this.model);
+  }
+}
+```
+
+- Set up the form. 
+
+- (**ngSubmit)** executes the function given after clicking button that has submit as its type. 
+
+- **#loginForm="ngForm"** marks form as an angular form. 
+
+- **[(ngModel)]** binds the data to model we created in **nav.component.ts** (banana notation).
+
+  ```html
+      <form
+        #loginForm="ngForm"
+        (ngSubmit)="login()"
+        class="d-flex"
+        autocomplete="off"
+      >
+        <input
+          name="username"
+          [(ngModel)]="model.username"
+          class="form-control me-2"
+          type="text"
+          placeholder="Username"
+        />
+        <input
+          name="password"
+          [(ngModel)]="model.password"
+          class="form-control me-2"
+          type="password"
+          placeholder="Password"
+        />
+        <button class="btn btn-outline-success" type="submit">Login</button>
+      </form>
+  ```
+
+  ### Angular Services
+
+- Create a services for for keeping things organized
+
+```bash
+cd src/app
+mkdir _services
+```
+
+* Generate the service with angular-cli
+
+```bash
+cd _services
+ng g s account --skip-tests
 ```
 
