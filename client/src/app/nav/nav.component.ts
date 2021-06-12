@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { User } from '../_models/user';
 import { AccountService } from '../_services/account.service';
 
 @Component({
@@ -9,11 +10,13 @@ import { AccountService } from '../_services/account.service';
 export class NavComponent implements OnInit {
   model: any = {};
   loggedIn!: boolean;
+  loggedInUser: string = JSON.parse(localStorage.getItem("user").valueOf()).username;
 
   constructor(private accountService: AccountService) { }
 
   ngOnInit(): void {
     this.getCurrentUser();
+    console.log(this.loggedInUser);
   }
 
   login() {
