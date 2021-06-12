@@ -827,7 +827,7 @@ import { BsDropdownModule } from "ngx-bootstrap/dropdown";
   ],
 ```
 
-* In **nav.component.html** use dropdown, dropdownToggle, *dropdownMenu. for more info check ngx-bootstrap docs
+* In **nav.component.html** use **dropdown, dropdownToggle, *dropdownMenu**. for more info check ngx-bootstrap docs
 
 ```html
     <div class="dropdown" *ngIf="loggedIn" dropdown>
@@ -838,5 +838,77 @@ import { BsDropdownModule } from "ngx-bootstrap/dropdown";
         <a class="dropdown-item" (click)="logout()">Logout</a>
       </div>
     </div>
+```
+
+### Persistent login
+
+* Create a User **user.ts** model in a new **_models** folder
+
+```ts
+export interface User {
+    username: string;
+    token: string;
+}
+```
+
+* Account operations in account.service.ts
+
+```ts
+export class AccountService {
+  //..
+  private currentUserSource = new ReplaySubject<User>(1);
+  currentUser$ = this.currentUserSource.asObservable();
+//..
+  login(model: any) {
+    return this.http.post(this.baseUrl + 'account/login', model).pipe(
+      map((response: User) => {
+        const user = response;
+        if (user) {
+          localStorage.setItem('user', JSON.stringify(user));
+          this.currentUserSource.next(user);
+        }}));}
+  setCurrentUser(user: User) {
+    this.currentUserSource.next(user);
+  }
+  logout() {
+    localStorage.removeItem('user');
+    this.currentUserSource.next(null);
+  }
+}
+```
+
+* Operations in app.component.ts
+
+```ts
+//.. 
+constructor(private http: HttpClient,
+    private accountService: AccountService
+  ) { }
+ ngOnInit() {
+//..
+    this.setCurrentUser();
+  }
+  setCurrentUser() {
+    const user: User = JSON.parse(localStorage.getItem('user'));
+    this.accountService.setCurrentUser(user);
+  }
+//..
+```
+
+* Operations in nav.component.ts
+
+```ts
+ ngOnInit(): void {
+    this.getCurrentUser();
+  }
+  //..
+   logout() {
+    this.accountService.logout();
+    this.loggedIn = false;
+  }
+  getCurrentUser() {
+    this.accountService.currentUser$.subscribe(user => {
+      this.loggedIn = !!user;
+    },error => {console.log(error);})}
 ```
 
