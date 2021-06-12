@@ -750,3 +750,93 @@ cd _services
 ng g s account --skip-tests
 ```
 
+* Create a function for login operation
+
+```bash
+export class AccountService {
+  baseUrl = 'https://localhost:5001/api';
+  constructor(private http: HttpClient) { }
+  login(model: any) {
+    return this.http.post(this.baseUrl + 'account/login', model);
+  }
+}
+```
+
+### Injecting services into components
+
+* Inject service in constructor of component like this
+
+```typescript
+export class NavComponent implements OnInit {
+//...  
+constructor(private accountService: AccountService) { }
+//..
+}
+```
+
+- Implement login function
+
+```typescript
+  login() {
+    this.accountService.login(this.model).subscribe(response => {
+      console.log(response);
+      this.loggedIn = true;
+    },error => {console.error(error);})}
+```
+
+### Adding and removing content using conditionals
+
+* Disable the options for **loggedIn==false**
+* Show the options for **loggedIn==true**
+* Disable the login form and change it with welcome text for **loggedIn==true**
+
+```html
+<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+  <div class="container container-fluid">
+    <a class="navbar-brand" href="#">Dating App</a>
+    <ul *ngIf="loggedIn" class="navbar-nav me-auto mb-2 mb-md-0">
+      <li class="nav-item"><a class="nav-link" aria-current="page" href="#">Matches</a></li>
+      <li class="nav-item"><a class="nav-link" href="#">Lists</a></li>
+      <li class="nav-item"><a class="nav-link" href="#">Messages</a></li>
+      <li class="nav-item"><a class="nav-link" (click)="logout()" href="#">Logout</a></li>
+    </ul>
+    <div class="dropdown" *ngIf="loggedIn">
+      <a class="dropdown-toggle text-light">Welcome {{ model.username }}</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item">Edit Profile</a><a class="dropdown-item (click)=logout()">Logout</a>
+      </div>
+    </div>
+    <form *ngIf="!loggedIn" #loginForm="ngForm" (ngSubmit)="login()" class="d-flex" autocomplete="off">
+      <input name="username" [(ngModel)]="model.username" class="form-control me-2" type="text" placeholder="Username"/>
+      <input name="password" [(ngModel)]="model.password" class="form-control me-2" type="password" placeholder="Password"/>
+      <button class="btn btn-outline-success" type="submit">Login</button>
+    </form>
+  </div>
+</nav>
+```
+
+### Using ngx-bootstrap components - dropdown
+
+* In **app.module.ts**
+
+```ts
+import { BsDropdownModule } from "ngx-bootstrap/dropdown";
+//..
+  imports: [//..
+    BsDropdownModule.forRoot(),
+  ],
+```
+
+* In **nav.component.html** use dropdown, dropdownToggle, *dropdownMenu. for more info check ngx-bootstrap docs
+
+```html
+    <div class="dropdown" *ngIf="loggedIn" dropdown>
+      <a class="dropdown-toggle text-light" dropdownToggle>Welcome {{ model.username }}</a>
+      <div class="dropdown-menu" *dropdownMenu>
+        <a class="dropdown-item">Edit Profile</a>
+        <div class="dropdown-divider"></div>
+        <a class="dropdown-item" (click)="logout()">Logout</a>
+      </div>
+    </div>
+```
+

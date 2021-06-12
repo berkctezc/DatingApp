@@ -1,7 +1,8 @@
 <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
   <div class="container container-fluid">
     <a class="navbar-brand" href="#">Dating App</a>
-    <ul class="navbar-nav me-auto mb-2 mb-md-0">
+
+    <ul *ngIf="loggedIn" class="navbar-nav me-auto mb-2 mb-md-0">
       <li class="nav-item">
         <a class="nav-link" aria-current="page" href="#">Matches</a>
       </li>
@@ -11,8 +12,24 @@
       <li class="nav-item">
         <a class="nav-link" href="#">Messages</a>
       </li>
+      <li class="nav-item">
+        <a class="nav-link" (click)="logout()" href="#">Logout</a>
+      </li>
     </ul>
+
+    <div class="dropdown" *ngIf="loggedIn" dropdown>
+      <a class="dropdown-toggle text-light" dropdownToggle
+        >Welcome {{ model.username }}</a
+      >
+      <div class="dropdown-menu mt-3" *dropdownMenu>
+        <a class="dropdown-item">Edit Profile</a>
+        <div class="dropdown-divider"></div>
+        <a class="dropdown-item" (click)="logout()">Logout</a>
+      </div>
+    </div>
+
     <form
+      *ngIf="!loggedIn"
       #loginForm="ngForm"
       (ngSubmit)="login()"
       class="d-flex"
