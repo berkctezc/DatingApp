@@ -912,3 +912,8 @@ constructor(private http: HttpClient,
     },error => {console.log(error);})}
 ```
 
+### Using the async pipe
+
+* Removed loggedIn variable, getCurrentUser in nav.component.ts, and made accountService injection public to use in html template
+* In template instead of *ngIf="loggedIn" we need ***ngIf="accountService.currentUser$ | async"**. And for ! we need to use === null
+
