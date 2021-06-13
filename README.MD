@@ -1024,19 +1024,19 @@ export class HomeComponent implements OnInit {
   getUsers() {this.http.get("https://localhost:5001/api/users").subscribe(users => this.users = users);}}
 ```
 
-* In **register.component.ts** set a input paramater for parent to child relation
+* In **register.component.ts** (child of home) set a input paramater for parent to child relation
 
 ```ts
 @Input() usersFromHomeComponent: any;
 ```
 
-* Pass the parameter in **home.component.html** when calling **register.component.html**
+* Pass the parameter in **home.component.html** when calling **register.component.html** (child of home)
 
 ```html
  <app-register [usersFromHomeComponent]="users"></app-register>
 ```
 
-* In **register.component.html** use values like this
+* In **register.component.html** (child of home) use values like this
 
 ```html
   </div>
@@ -1048,5 +1048,36 @@ export class HomeComponent implements OnInit {
       </option>
     </select>
   </div>
+```
+
+### Child to parent communication
+
+* In **register.component.ts**
+
+```ts
+ @Output() cancelRegister = new EventEmitter() // import from '@angular/core'
+```
+
+* and use like this in a function
+
+```ts
+  cancel() {
+    this.cancelRegister.emit(false);
+  }
+```
+
+* In **home.component.ts** (parent of register)
+
+```ts
+  cancelRegisterMode(event: boolean) {
+    this.registerMode = event;
+  }
+```
+
+* and lastly in **home.component.html** (parent of register)
+
+```html
+      <app-register [usersFromHomeComponent]="users" (cancelRegister)="cancelRegisterMode($event)">
+      </app-register>
 ```
 
