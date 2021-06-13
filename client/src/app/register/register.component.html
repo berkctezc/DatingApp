@@ -9,20 +9,32 @@
       [(ngModel)]="model.username"
       placeholder="Username"
     />
-    <div class="form-group mt-4 mb-4">
-      <input
-        type="password"
-        class="form-control"
-        name="password"
-        [(ngModel)]="model.password"
-        placeholder="Password"
-      />
-    </div>
-    <div class="form-group text-center">
-      <button class="btn btn-success me-4" type="submit">Register</button>
-      <button class="btn btn-default me-4" (click)="cancel()" type="button">
-        Cancel
-      </button>
-    </div>
+  </div>
+  <div class="form-group">
+    <label>Who is your favourite user?</label>
+    <select class="form-control">
+      <option
+        value=""
+        *ngFor="let user of usersFromHomeComponent"
+        [value]="user.userName"
+      >
+        {{ user.userName }}
+      </option>
+    </select>
+  </div>
+  <div class="form-group mt-4 mb-4">
+    <input
+      type="password"
+      class="form-control"
+      name="password"
+      [(ngModel)]="model.password"
+      placeholder="Password"
+    />
+  </div>
+  <div class="form-group text-center">
+    <button class="btn btn-success me-4" type="submit">Register</button>
+    <button class="btn btn-default me-4" (click)="cancel()" type="button">
+      Cancel
+    </button>
   </div>
 </form>

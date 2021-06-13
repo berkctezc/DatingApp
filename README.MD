@@ -915,5 +915,138 @@ constructor(private http: HttpClient,
 ### Using the async pipe
 
 * Removed loggedIn variable, getCurrentUser in nav.component.ts, and made accountService injection public to use in html template
-* In template instead of *ngIf="loggedIn" we need ***ngIf="accountService.currentUser$ | async"**. And for ! we need to use === null
+* In template instead of ***ngIf="loggedIn"** we need ***ngIf="accountService.currentUser$ | async"**. And for ! we need to use === null
+
+### Adding a home page
+
+```bash
+ng g c home # create a component named home
+```
+
+* Register field for new users in **register.component.ts**
+
+```ts
+export class HomeComponent implements OnInit {
+  registerMode = false;
+//..
+  registerToggle() {
+    this.registerMode = !this.registerMode;
+  }
+}
+```
+
+```html
+<div *ngIf="!registerMode" class="container mt-5" class="text-center">
+  <h1>Find your match</h1>
+  <p class="lead">
+    Come on in to view your matches.. all you need to do is sign up!
+  </p>
+  <div class="text-center">
+    <button (click)="registerToggle()" class="btn btn-primary btn-lg me-2">
+      Register</button
+    ><button class="btn btn-info btn-lg">Learn More</button>
+  </div>
+</div>
+
+<div *ngIf="registerMode" class="container">
+  <div class="row justify-content-center">
+    <div class="col-4">
+      <p>Register Form goes here</p>
+    </div>
+  </div>
+</div>
+```
+
+* Add component to **app.component.html** template `<app-home></app-home>`
+
+### Adding a register form
+
+```bash
+ng g c register # create a component named register
+```
+
+* Created simple methods for testing
+
+```ts
+export class RegisterComponent implements OnInit {
+  model: any = {};
+//..
+  register() {console.log(this.model);}
+  cancel() {console.log('cancelled');}
+}
+```
+
+* Form **register.component.html**
+
+```html
+<form #registerForm="ngForm" (ngSubmit)="register()" autocomplete="off">
+  <h2 class="text-center text-primary">Sign up</h2>
+  <hr />
+  <div class="form-group">
+    <input
+      type="text"
+      class="form-control"
+      name="username"
+      [(ngModel)]="model.username"
+      placeholder="Username"
+    />
+    <div class="form-group mt-4 mb-4">
+      <input
+        type="password"
+        class="form-control"
+        name="password"
+        [(ngModel)]="model.password"
+        placeholder="Password"
+      />
+    </div>
+    <div class="form-group text-center">
+      <button class="btn btn-success me-4" type="submit">Register</button>
+      <button class="btn btn-default me-4" (click)="cancel()" type="button">
+        Cancel
+      </button>
+    </div>
+  </div>
+</form>
+```
+
+* **home.component.html** => `<app-register></app-register>`
+
+### Parent to child communication
+
+* In **home.component.ts** make get request to api to getUsers
+
+```ts
+export class HomeComponent implements OnInit {
+ //..
+  users: any;
+  constructor(private http: HttpClient) { }
+  ngOnInit(): void {this.getUsers();}
+  getUsers() {this.http.get("https://localhost:5001/api/users").subscribe(users => this.users = users);}}
+```
+
+* In **register.component.ts** set a input paramater for parent to child relation
+
+```ts
+@Input() usersFromHomeComponent: any;
+```
+
+* Pass the parameter in **home.component.html** when calling **register.component.html**
+
+```html
+ <app-register [usersFromHomeComponent]="users"></app-register>
+```
+
+* In **register.component.html** use values like this
+
+```html
+  </div>
+  <div class="form-group">
+    <label>Who is your favourite user?</label>
+    <select class="form-control">
+      <option value="" *ngFor="let user of usersFromHomeComponent" [value]="user.userName">
+        {{ user.userName }}
+      </option>
+    </select>
+  </div>
+```
 
