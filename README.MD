@@ -1077,7 +1077,41 @@ export class HomeComponent implements OnInit {
 * and lastly in **home.component.html** (parent of register)
 
 ```html
-      <app-register [usersFromHomeComponent]="users" (cancelRegister)="cancelRegisterMode($event)">
-      </app-register>
+      <app-register [usersFromHomeComponent]="users" (cancelRegister)="cancelRegisterMode($event)"></app-register>
+```
+
+### Hooking up the register method to the service
+
+* Implement register method in **account.service.ts**
+
+```ts
+  register(model: any) {
+    return this.http.post(this.baseUrl + 'account/register', model).pipe(
+      map((user: User) => {
+        if (user) {
+          localStorage.setItem('user', JSON.stringify(user));
+          this.currentUserSource.next(user);
+        }
+        return user;
+      })
+    )
+  }
+```
+
+* In **register.component.ts** inject **account.service.ts** and use it in a function
+
+```ts
+export class RegisterComponent implements OnInit {
+//..
+  constructor(private accountService: AccountService) { }
+register() {
+    this.accountService.register(this.model)
+      .subscribe(
+        response => {
+          console.log(response);
+          this.cancel();
+        }, error => { console.log(error); })}}
+//..
+}
 ```
 
