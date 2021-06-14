@@ -1158,9 +1158,8 @@ const routes: Routes = [
 
 ### Adding toastr service for notifications
 
-- `npm install ngx-toastr`
-
+* `npm install ngx-toastr`
 * In **angular.json** add  `"./node_modules/font-awesome/css/font-awesome.css","./node_modules/ngx-toastr/toastr.css"` in styles array
-
 * In **app.module.ts** add **ToastrModule** to imports array and configure like this  `ToastrModule.forRoot({positionClass: 'toast-bottom-right'})`
+* Inject in **component.ts** and use it in functions like `this.toastr.error(error)` or `this.toastr.success('message')` (also warning and info is available)
 
