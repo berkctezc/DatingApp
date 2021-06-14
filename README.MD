@@ -19,7 +19,6 @@ dotnet --info # info about dotnet installations on the machine
 dotnet new # create a new project
 dotnet new -l # lists templates for new project
 dotnet sln # modify vs solution file
-ß
 dotnet run # runs the project in pwd
 dotnet build # build the project in pwd
 dotnet watch run # runs with a file watcher
@@ -35,7 +34,7 @@ dotnet ef migrations add <MIGNAME> # creates a migration you can use -o to speci
 dotnet ef database update # updates db content using migrations
 ```
 
-for our project we are going to run
+for our project we are going to use
 
 ```bash
 dotnet new sln # gets its name from directory
@@ -59,7 +58,7 @@ dotnet run
 ```
 
 - access in https://localhost:5001/Controller ,
-- after running the project dotnet looks for Main method (in Program.cs) and the main method calls CreateHostBuilder. We could do some configuration in this method. CreateHostBuilder uses our Startup.cs file as startup. And we could also make configurations there.
+- after running the project, dotnet looks for Main method (in Program.cs) and the main method calls CreateHostBuilder. We could do some configuration in this method. CreateHostBuilder uses our Startup.cs file as startup. And we could also make configurations there.
 - in appsettings.Development.json change `"Microsoft": "Warning"` to `"Microsoft": "Information"` to see more info data on terminal output
 
 - Startup.cs
@@ -1114,4 +1113,38 @@ register() {
 //..
 }
 ```
+
+## 5 - Routing in Angular
+
+### Creating some more components
+
+- Create member-list, member-detail, lists, messages components
+
+```bash
+cd src/app
+mkdir members
+cd members
+ng g c member-list --skip-tests
+ng g c member-detail --skip-tests
+cd ..
+ng g c lists --skip-tests
+ng g c messages --skip-tests
+```
+
+- In **app-routing.module.ts** add routes
+
+```bash
+const routes: Routes = [
+	{ path: '', component: HomeComponent },
+	{ path: 'members', component: MemberListComponent },
+	{ path: 'members/:id', component: MemberDetailComponent },
+	{ path: 'lists', component: ListsComponent },
+	{ path: 'messages', component: MessagesComponent },
+	{ path: '**', component: HomeComponent, pathMatch: 'full' },
+];
+```
+
+* In **app.component.html** use `<router-outlet></router-outlet>`instead of `<app-home></app-home>`
+
+
 
