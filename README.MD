@@ -1221,4 +1221,46 @@ npm install bootswatch
 
 - angular.json, styles array `"./node_modules/bootswatch/dist/morph/bootstrap.css",`
 
-### Tidying up the app module by using a shared module
+### Shared module
+
+```bash
+cd src/app
+mkdir _modules
+cd _modules
+ng g m shared --flat
+```
+
+* Move some modules into shared.module.ts and import in in app.module.ts
+
+```ts
+// app.module.ts
+@NgModule({
+  declarations: [//..
+  ],
+  imports: [
+    BrowserModule,
+    AppRoutingModule,
+    HttpClientModule,
+    BrowserAnimationsModule,
+    FormsModule,
+    SharedModule // here
+  ],
+//..
+})
+// shared.module.ts
+@NgModule({
+  declarations: [],
+  imports: [
+    CommonModule,
+    BsDropdownModule.forRoot(),
+    ToastrModule.forRoot({
+      positionClass: 'toast-bottom-right'
+    })
+  ],
+  exports: [
+    BsDropdownModule,
+    ToastrModule
+  ]
+})
+```
+
