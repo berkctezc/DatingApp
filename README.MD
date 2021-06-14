@@ -1155,3 +1155,12 @@ const routes: Routes = [
 
 * Inject Router in component.ts
 * In functions call router like this `this.router.navigateByUrl('/members');`
+
+### Adding toastr service for notifications
+
+- `npm install ngx-toastr`
+
+* In **angular.json** add  `"./node_modules/font-awesome/css/font-awesome.css","./node_modules/ngx-toastr/toastr.css"` in styles array
+
+* In **app.module.ts** add **ToastrModule** to imports array and configure like this  `ToastrModule.forRoot({positionClass: 'toast-bottom-right'})`
+
