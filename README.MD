@@ -181,7 +181,7 @@ public ActionResult<AppUser> GetUsers(int id)
 
 ### angular-cli
 
-- install with `npm install -g @angular/cli`
+- install with `npm i -g @angular/cli`
 
 ```bash
 ######################################################
@@ -278,11 +278,9 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 ```bash
 ng add ngx-bootstrap # install with configurations
-
 # or
-
-npm install ngx-bootstrap
-npm install bootstrap
+npm i ngx-bootstrap
+npm i bootstrap
 # and add into angular.json styles array,
 # add into imports in app.module.ts
 ```
@@ -1163,3 +1161,64 @@ const routes: Routes = [
 * In **app.module.ts** add **ToastrModule** to imports array and configure like this  `ToastrModule.forRoot({positionClass: 'toast-bottom-right'})`
 * Inject in **component.ts** and use it in functions like `this.toastr.error(error)` or `this.toastr.success('message')` (also warning and info is available)
 
+### Angular Route Guard
+
+```bash
+cd src/app
+mkdir _guards
+cd _guards
+ng g guard auth --skip-tests
+```
+
+* add a constructor, simply guard and implement
+
+```ts
+export class AuthGuard implements CanActivate {
+
+  constructor(
+    private accountService: AccountService,
+    private toastr: ToastrService) { }
+
+  canActivate(): Observable<boolean> {
+    return this.accountService.currentUser$.pipe(map(user => {
+      if (user) return true;
+      this.toastr.error('You shall not pass!');
+    }));
+  }
+}
+```
+
+* add to routing module like
+
+```ts
+  { path: 'members', component: MemberListComponent, canActivate: [AuthGuard] },
+```
+
+### Adding a dummy route
+
+- In app.routing.module applied guard on all the paths
+
+```
+  {
+    path: '',
+    runGuardsAndResolvers: 'always',
+    canActivate: [AuthGuard],
+    children: [
+      { path: 'members', component: MemberListComponent, canActivate: [AuthGuard] },
+      { path: 'members/:id', component: MemberDetailComponent },
+      { path: 'lists', component: ListsComponent },
+      { path: 'messages', component: MessagesComponent },
+      { path: '**', component: HomeComponent, pathMatch: 'full' },
+    ]
+  },
+```
+
+### Adding a new theme
+
+```bash
+npm install bootswatch
+```
+
+- angular.json, styles array `"./node_modules/bootswatch/dist/morph/bootstrap.css",`
+
+### Tidying up the app module by using a shared module
