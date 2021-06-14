@@ -1146,5 +1146,12 @@ const routes: Routes = [
 
 * In **app.component.html** use `<router-outlet></router-outlet>`instead of `<app-home></app-home>`
 
+### Adding the nav links
 
+* In nav.component.html add the route to `<a>` tags with `routerLink=''`
+* And with `routerLinkActive=''` you can add a css class when route is active
 
+### Routing in code
+
+* Inject Router in component.ts
+* In functions call router like this `this.router.navigateByUrl('/members');`
