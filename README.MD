@@ -1634,3 +1634,33 @@ export class ServerErrorComponent implements OnInit {
 
 ## 7 - Extending the API
 
+### Extending the user entity
+
+* added  DateOfBirth, KnownAs, Created, LastActive, Gender, Introduction,LookingFor, Interests, City, Country, Photos (ICollection of Photo) props
+
+### DateTime extension to calculate age
+
+- Extensions/DateTimeExtensions.cs
+
+```cs
+    public static class DateTimeExtensions
+    {
+        public static int CalculateAge(this DateTime dob)
+        {
+            var today = DateTime.Today;
+            var age = today.Year - dob.Year;
+            if (dob.Date > today.AddYears(-age)) age--;
+            return age;
+        }
+    }
+```
+
+- AppUser.cs
+
+```cs
+        public int GetAge()
+        {
+            return DateOfBirth.CalculateAge();
+        }
+```
+
