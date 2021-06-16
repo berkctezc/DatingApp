@@ -668,7 +668,7 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-## 4 - Client Login and Register
+## 4 - Client Login and Register (FE)
 
 ### Creating a navbar
 
@@ -1112,7 +1112,7 @@ register() {
 }
 ```
 
-## 5 - Routing in Angular
+## 5 - Routing in Angular (FE)
 
 ### Creating some more components
 
@@ -1266,7 +1266,7 @@ ng g m shared --flat
 
 ## 6 - Error Handling
 
-### Error Controller
+### Error Controller (BE)
 
 Created a Controller named BuggyController and tested http responses
 
@@ -1312,7 +1312,7 @@ public class BuggyController : BaseApiController
     }
 ```
 
-### Exception Handling Middleware
+### Exception Handling Middleware (BE)
 
 - Created an errors entity named **ApiException** in **Errors** folder. 
 
@@ -1380,3 +1380,92 @@ namespace API.Middleware
 ```
 
 - In **Startup.cs** replaced `app.UseDeveloperExceptionPage()` with `app.UseMiddleware<ExceptionMiddleware>()`
+
+### Testing Errors in the Client (FE)
+
+* Create test errors component
+
+```bash
+cd src/app
+mkdir errors
+cd errors
+ng g c test-errors --skip-tests
+```
+
+- Add to routing  `{ path: 'errors', component: TestErrorsComponent }`
+- Make requests to the api buggy controller in **test-errors.component.ts**
+
+```ts
+export class TestErrorsComponent implements OnInit {
+  baseUrl = 'https://localhost:5001/api/';
+
+  constructor(private http: HttpClient) { }
+
+  ngOnInit(): void {
+  }
+
+  get404Error() {
+    this.http.get(this.baseUrl + 'buggy/not-found').subscribe(response => {
+      console.log(response);
+    }, error => {
+      console.log(error);
+    })
+  }
+
+  get400Error() {
+    this.http.get(this.baseUrl + 'buggy/bad-request').subscribe(response => {
+      console.log(response);
+    }, error => {
+      console.log(error);
+    })
+  }
+
+  get500Error() {
+    this.http.get(this.baseUrl + 'buggy/server-error').subscribe(response => {
+      console.log(response);
+    }, error => {
+      console.log(error);
+    })
+  }
+
+  get401Error() {
+    this.http.get(this.baseUrl + 'buggy/auth').subscribe(response => {
+      console.log(response);
+    }, error => {
+      console.log(error);
+    })
+  }
+
+  get400ValidationError() {
+    this.http.post(this.baseUrl + 'account/register', {}).subscribe(response => {
+      console.log(response);
+    }, error => {
+      console.log(error);
+    })
+  }
+}
+```
+
+- Add buttons for accessing in view
+
+```html
+<ng-container>
+  <button (click)="get500Error()" class="btn btn-outline-primary mr3">
+    Test 500 Error
+  </button>
+  <button (click)="get400Error()" class="btn btn-outline-primary mr3">
+    Test 400 Error
+  </button>
+  <button (click)="get401Error()" class="btn btn-outline-primary mr3">
+    Test 401 Error
+  </button>
+  <button (click)="get404Error()" class="btn btn-outline-primary mr3">
+    Test 404 Error
+  </button>
+  <button (click)="get400ValidationError()" class="btn btn-outline-primary mr3">
+    Test 400 Validation Error
+  </button>
+</ng-container>
+```
+
+### Adding an Error Interceptor
