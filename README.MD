@@ -1264,3 +1264,119 @@ ng g m shared --flat
 })
 ```
 
+## 6 - Error Handling
+
+### Error Controller
+
+Created a Controller named BuggyController and tested http responses
+
+```cs
+public class BuggyController : BaseApiController
+    {
+        private readonly DataContext _context;
+
+        public BuggyController(DataContext context)
+        {
+            _context = context;
+        }
+
+        [Authorize]
+        [HttpGet("auth")]
+        public ActionResult<string> GetSecret()
+        {
+            return "secret text";
+        }
+        [HttpGet("not-found")]
+        public ActionResult<AppUser> GetNotFound()
+        {
+            var thing = _context.AppUsers.Find(-1);
+
+            if (thing == null) return NotFound();
+
+            return Ok(thing);
+        }
+        [HttpGet("server-error")]
+        public ActionResult<string> GetServerError()
+        {
+            var thing = _context.AppUsers.Find(-1);
+
+            var thingToReturn = thing.ToString();
+
+            return thingToReturn;
+        }
+        [HttpGet("bad-request")]
+        public ActionResult<string> GetBadRequest()
+        {
+            return BadRequest("This was not a good request");
+        }
+    }
+```
+
+### Exception Handling Middleware
+
+- Created an errors entity named **ApiException** in **Errors** folder. 
+
+```cs
+namespace API.Errors
+{
+    public class ApiException
+    {
+        public ApiException(int statusCode, string message = null, string details = null)
+        {
+            StatusCode = statusCode;
+            Message = message;
+            Details = details;
+        }
+
+        public int StatusCode { get; set; }
+        public string Message { get; set; }
+        public string Details { get; set; }
+    }
+}
+```
+
+- Created **ExceptionMiddleware** in **Middleware** folder.
+
+```cs
+namespace API.Middleware
+{
+    public class ExceptionMiddleware
+    {
+        private readonly IHostEnvironment _env;
+        private readonly ILogger<ExceptionMiddleware> _logger;
+        private readonly RequestDelegate _next;
+        public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger, IHostEnvironment env)
+        {
+            _next = next;
+            _logger = logger;
+            _env = env;
+        }
+
+        public async Task InvokeAsync(HttpContext context)
+        {
+            try
+            {
+                await _next(context);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                context.Response.ContentType = "application/json";
+                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+
+                var response = _env.IsDevelopment()
+                ? new ApiException(context.Response.StatusCode, ex.Message, ex.StackTrace?.ToString())
+                : new ApiException(context.Response.StatusCode, "Internal Server Error");
+
+                var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
+                var json = JsonSerializer.Serialize(response, options);
+
+                await context.Response.WriteAsync(json);
+            }
+        }
+    }
+}
+```
+
+- In **Startup.cs** replaced `app.UseDeveloperExceptionPage()` with `app.UseMiddleware<ExceptionMiddleware>()`
