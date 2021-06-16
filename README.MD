@@ -1536,3 +1536,101 @@ export class ErrorInterceptor implements HttpInterceptor {
   ```
 
   
+
+### Validation Errors
+
+- test-errors.cmponent
+
+```ts
+  validationErrors: string[] = [];
+
+//..
+  get400ValidationError() {
+    this.http.post(this.baseUrl + 'account/register', {}).subscribe(response => {
+      console.log(response);
+    }, error => {
+      console.log(error);
+      this.validationErrors = error; // add to errorList
+    })
+  }
+```
+
+* Display in view
+  
+
+```html
+  <div class="row mt-4" *ngIf="validationErrors.length > 0">
+    <ul class="text-danger">
+      <li *ngFor="let error of validationErrors">
+        {{ error }}
+      </li>
+    </ul>
+  </div>
+```
+
+### Handling not found
+
+```bash
+cd src/app/errors
+ng g c not-found --skip-tests
+```
+
+- Create a not-found component and add it to route
+
+### Server Error Page
+
+```bash
+cd src/app/errors
+ng g c not-found --skip-tests
+```
+
+- server-error.component.ts
+
+```ts
+export class ServerErrorComponent implements OnInit {
+  error: any;
+
+  constructor(private router: Router) {
+    const navigation = this.router.getCurrentNavigation();
+    this.error = navigation?.extras?.state?.error;
+  }
+  ngOnInit(): void {
+  }
+}
+```
+
+- Some informative text on **server-error.component.html**
+
+```html
+<h4>
+  Internal Server Error - Refreshing the page will make the error disappear!
+</h4>
+
+<ng-container *ngIf="error">
+  <h5 class="text-danger">Error:{{ error.message }}</h5>
+  <p class="font-weight-bold">Note: Not an Angular error</p>
+  <p>What to do next?</p>
+  <ol>
+    <li>Open the chrome dev tools</li>
+    <li>Inspect the network tab</li>
+    <li>Check the failing request</li>
+    <li>Examine the request URL - make sure it is correct</li>
+    <li>
+      Reproduce the error in Postman - if we see the same response, then the
+      issue is not with angular
+    </li>
+  </ol>
+  <p>
+    Following is the stack trace - this is where your investigation should
+    start!
+  </p>
+  <code class="mt-5" style="background-color: whitesmoke">{{
+    error.details
+  }}</code>
+</ng-container>
+```
+
+* Add to routing
+
+## 7 - Extending the API
+
