@@ -1636,11 +1636,11 @@ export class ServerErrorComponent implements OnInit {
 
 ### Extending the user entity
 
-* added  DateOfBirth, KnownAs, Created, LastActive, Gender, Introduction,LookingFor, Interests, City, Country, Photos (ICollection of Photo) props
+* added  **DateOfBirth, KnownAs, Created, LastActive, Gender, Introduction,LookingFor, Interests, City, Country, Photos** (ICollection of Photo) props to **AppUser.cs**
 
 ### DateTime extension to calculate age
 
-- Extensions/DateTimeExtensions.cs
+- Extensions/**DateTimeExtensions.cs**
 
 ```cs
     public static class DateTimeExtensions
