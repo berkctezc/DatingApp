@@ -14,10 +14,10 @@
     Country: '{{country()}}',
     Photos: [
         {
-          url: function(num) {
+          Url: function(num) {
           return 'https://randomuser.me/api/portraits/women/' + num.integer(1,99) + '.jpg';
         },
-        isMain: true
+        IsMain: true
       }
     ]
   }

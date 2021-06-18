@@ -1691,4 +1691,57 @@ export class ServerErrorComponent implements OnInit {
     }
 ```
 
-### 
+### Generating Seed Data & Seeding Data
+
+- Use [json-generator](https://www.json-generator.com/)
+- Create a **Seed** class in Data
+
+```cs
+    public class Seed
+    {
+        public static async Task SeedUsers(DataContext context)
+        {
+            if (await context.AppUsers.AnyAsync()) return;
+
+            string SeedDataPath = "Data/UserSeedData.json";
+
+            var userData = await System.IO.File.ReadAllTextAsync(SeedDataPath);
+            var users = JsonSerializer.Deserialize<List<AppUser>>(userData);
+            foreach (var user in users)
+            {
+                using var hmac = new HMACSHA512();
+
+                user.UserName = user.UserName.ToLower();
+                user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes("Pa$$w0rd"));
+                user.PasswordSalt = hmac.Key;
+
+                context.AppUsers.Add(user);
+            }
+        }
+    }
+```
+
+- Add functionality to Startup.cs to seed everything and apply migrations at every startup.
+
+```cs
+ public static async Task Main(string[] args)
+        {
+            var host = CreateHostBuilder(args).Build();
+            using var scope = host.Services.CreateScope();
+            var services = scope.ServiceProvider;
+            try
+            {
+                var context = services.GetRequiredService<DataContext>();
+                await context.Database.MigrateAsync();
+                await Seed.SeedUsers(context);
+            }
+            catch (Exception ex)
+            {
+                var logger = services.GetRequiredService<ILogger<Program>>();
+                logger.LogError(ex, "An error occurred during migration");
+            }
+
+            await host.RunAsync();
+        }
+```
+
