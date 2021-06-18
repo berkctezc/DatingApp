@@ -1995,25 +1995,392 @@ public class UserRepository : IUserRepository
 ## 8 - Building the User Interface
 
 - Created interfaces for member and photo
-
-* Create member service in _services **`ng g s members --skip-tests`**
+- Moved apiıUrl to environment files
+- Create member service in _services **`ng g s members --skip-tests`**
 
 ```ts
-const httpOptions = { // header config for carrying token to access authorized get requests
-  headers: new HttpHeaders({Authorization: 'Bearer' + JSON.parse(localStorage.getItem('user')).token})}
-
-@Injectable({providedIn: 'root'})
 export class MembersService {
   baseUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) { }
 
   getMembers() {
-    return this.http.get<Member[]>(this.baseUrl + 'users', httpOptions);
+    return this.http.get<Member[]>(this.baseUrl + 'users');
   }
+
   getMember(username: string) {
-    return this.http.get<Member[]>(this.baseUrl + 'users/' + username, httpOptions);
+    return this.http.get<Member>(this.baseUrl + 'users/' + username);
   }
 }
+```
+
+### Retrieving the list of members
+
+- In member-list.component.ts
+
+```ts
+export class MemberListComponent implements OnInit {
+  members: Member[];
+
+  constructor(private memberService: MembersService) { }
+
+  ngOnInit(): void {
+    this.loadMembers();
+  }
+
+  loadMembers() {
+    this.memberService.getMembers().subscribe(members => {
+      this.members = members;
+    })
+  }
+}
+```
+
+* In member-list.component.html
+
+```html
+<div class="row">
+  <div class="col-2">
+    <p *ngFor="let member of members">{{ member.knownAs }}</p>
+  </div>
+</div>
+```
+
+### Creating member cards
+
+- Create member-card component
+
+```bash
+cd src/app/members
+ng g c member-car --skip-tests
+```
+
+* In member-card.component.ts add input field.
+
+```ts
+@Input() member: Member;
+```
+
+- In member-card.component.html
+
+```html
+<div class="card mb-4">
+    <div class="card-img-wrapper">
+        <img src="{{member.photoUrl || './assets/user.png'}}" alt="{{member.knownAs}}" class="card-img-top">
+        <ul class="list-inline member-icons animate text-center">
+            <li class="list-inline-item"><button class="btn btn-primary">
+                <i class="fa fa-user"></i></button></li>
+            <li class="list-inline-item"><button class="btn btn-primary">
+                <i class="fa fa-heart"></i></button></li>
+            <li class="list-inline-item"><button class="btn btn-primary">
+                <i class="fa fa-envelope"></i></button></li>
+        </ul>
+    </div>
+    <div class="card-body p-1">
+        <h6 class="card-title text-center mb-1"><i class="fa fa-user mr-2"></i>
+            {{member.knownAs}}
+        </h6>
+        <p class="card-text text-muted text-center">{{member.city}}</p>
+    </div>
+</div>
+```
+
+- Add style to member-card.component.css
+
+```css
+.card:hover img {
+    transform: scale(1.2, 1.2);
+    transition-duration: 500ms;
+    transition-timing-function: ease-out;
+    opacity: 0.7;
+}
+.card img {
+    transform: scale(1.0, 1.0);
+    transition-duration: 500ms;
+    transition-timing-function: ease-out;
+}
+.card-img-wrapper {
+    overflow: hidden;
+    position: relative;
+}
+.member-icons {
+    position: absolute;
+    bottom: -30%;
+    left: 0;
+    right: 0;
+    margin-right: auto;
+    margin-left: auto;
+    opacity: 0;
+}
+.card-img-wrapper:hover .member-icons {
+    bottom: 0;
+    opacity: 1;
+}
+.animate {
+    transition: all 0.3s ease-in-out;
+}
+```
+
+### Using an interceptor to send the token
+
+```shell
+cd src/app/_interceptors
+ng g interceptor jwt --skip-tests
+```
+
+- jwt.interceptor.ts
+
+```ts
+export class JwtInterceptor implements HttpInterceptor {
+  constructor(private accountService: AccountService) {}
+
+  intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+    let currentUser: User;
+    this.accountService.currentUser$.pipe(take(1)).subscribe(user => currentUser = user);
+    if (currentUser) {
+      request = request.clone({
+        setHeaders: {
+          Authorization: `Bearer ${currentUser.token}`
+        }})}
+    return next.handle(request);
+  }}
+```
+
+- add to app.module.ts `{provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true}`
+
+### Routing to Detail page
+
+- **member-detail.component.ts**
+
+```ts
+export class MemberDetailComponent implements OnInit {
+  member: Member;
+
+  constructor(private memberService: MembersService, private route: ActivatedRoute) { }
+
+  ngOnInit(): void {
+    this.loadMember();
+  }
+
+  loadMember() {
+    this.memberService.getMember(this.route.snapshot.paramMap.get('username')).subscribe(member => {
+      this.member = member;
+    })
+  }
+}
+```
+
+- **member-detail.component.html**
+
+```html
+<h1 *ngIf="member">{{member.knownAs}}</h1>
+```
+
+- Update **app-routing.module.ts** `members/:id` to `members/:username`
+- Add routerLink to **member-card.component.html** `routerLink='/members/{{member.username}}'`
+
+### Styling the member detailed page
+
+- **member-detail.component.html**
+
+```html
+<div class="row" *ngIf="member">
+    <div class="col-4">
+        <div class="card">
+            <img src="{{member.photoUrl || './assets/user.png'}}" alt="{{member.knownAs}}" 
+                class="card-img-top img-thumbnail">
+            <div class="card-body">
+                <div>
+                    <strong>Location:</strong>
+                    <p>{{member.city}}, {{member.country}}</p>
+                </div>
+                <div>
+                    <strong>Age:</strong>
+                    <p>{{member.age}}</p>
+                </div>
+                <div>
+                    <strong>Last Active:</strong>
+                    <p>{{member.lastActive}}</p>
+                </div>
+                <div>
+                    <strong>Member since:</strong>
+                    <p>{{member.created}}</p>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="btn-group d-flex">
+                    <button class="btn btn-primary">Like</button>
+                    <button class="btn btn-success">Message</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+```
+
+- **member-detail.component.css**
+
+```css
+.img-thumbnail {
+    margin: 25px;
+    width: 85%;
+    height: 85%;
+}
+.card-body {
+    padding: 0 25px;
+}
+.card-footer {
+    padding: 10px 15px;
+    background-color: #fff;
+    border-top: none;
+}
+```
+
+- Import and Export Angular-Bootstrap Tabs Module in **shared.module.ts**
+
+- Added tabset to **member-detail.component.html**
+
+```html
+    <div class="col-8">
+        <tabset class="member-tabset">
+            <tab heading='About {{member.knownAs}}'>
+                <h4>Description</h4>
+                <p>{{member.introduction}}</p>
+                <h4>Looking for</h4>
+                <p>{{member.lookingFor}}</p>
+            </tab>
+            <tab heading='Interests'>
+                <h4>Interests</h4>
+                <p>{{member.interests}}</p>
+            </tab>
+            <tab heading='Photos'>
+			<p>Photos will go here</p>
+            </tab>
+            <tab heading='Messages'>
+                <p>Messages will go here</p>
+            </tab>
+        </tabset>
+    </div>
+```
+
+- In global **styles.css**
+
+```css
+.tab-panel {
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 4px;
+}
+.nav-tabs > li.open, .member-tabset > .nav-tabs > li:hover {
+  border-bottom: 4px solid #fbcdcf;
+}
+.member-tabset > .nav-tabs > li.open > a, .member-tabset > .nav-tabs > li:hover > a {
+  border: 0;
+  background: none !important;
+  color: #333333;
+}
+.member-tabset > .nav-tabs > li.open > a > i, .member-tabset > .nav-tabs > li:hover > a > i {
+  color: #a6a6a6;
+}
+.member-tabset > .nav-tabs > li.open .dropdown-menu, .member-tabset > .nav-tabs > li:hover .dropdown-menu {
+  margin-top: 0px;
+}
+.member-tabset > .nav-tabs > li.active {
+  border-bottom: 4px solid #E95420;
+  position: relative;
+}
+.member-tabset > .nav-tabs > li.active > a {
+  border: 0 !important;
+  color: #333333;
+}
+.member-tabset > .nav-tabs > li.active > a > i {
+  color: #404040;
+}
+.member-tabset > .tab-content {
+  margin-top: -3px;
+  background-color: #fff;
+  border: 0;
+  border-top: 1px solid #eee;
+  padding: 15px 0;
+}
+```
+
+### Adding a photo gallery
+
+- `npm install @kolkov/ngx-gallery`
+- Import (**shared.module.ts**)
+
+```ts
+@NgModule({
+  declarations: [],
+  imports: [
+//..
+    NgxGalleryModule
+  ],
+  exports: [
+//..
+    NgxGalleryModule
+  ]
+})
+```
+
+- Use in **member-detail.component.ts**. Final form of file
+
+```ts
+export class MemberDetailComponent implements OnInit {
+  member: Member;
+  galleryOptions: NgxGalleryOptions[]; //set these
+  galleryImages: NgxGalleryImage[];
+  constructor(private memberService: MembersService, private route: ActivatedRoute) { }
+  ngOnInit(): void {
+    this.loadMember();
+
+    this.galleryOptions = [
+      {
+        width: '500px',
+        height: '500px',
+        imagePercent: 100,
+        thumbnailsColumns: 4,
+        imageAnimation: NgxGalleryAnimation.Slide,
+        preview: false
+      }
+    ]
+  }
+    // get images from db
+  getImages(): NgxGalleryImage[] {
+    const imageUrls = [];
+    for (const photo of this.member.photos) {
+      imageUrls.push({
+        small: photo?.url,
+        medium: photo?.url,
+        big: photo?.url
+      })
+    }
+    return imageUrls;
+  }
+  loadMember() {
+    this.memberService.getMember(this.route.snapshot.paramMap.get('username')).subscribe(member => {
+      this.member = member;
+      this.galleryImages = this.getImages();
+    })
+  }
+}
+```
+
+- Insert this into html
+
+```html
+            <tab heading='Photos'>
+                <ngx-gallery [options]="galleryOptions" [images]="galleryImages" 
+                    style="display: inline-block; margin-bottom: 20px;"></ngx-gallery>
+            </tab>
+```
+
+- Add a placeholder for user. Place an placeholder image on assets
+- In html use it like this (if member.photoUrl is null set to placeholder)
+
+```html
+            <img src="{{member.photoUrl || './assets/user.png'}}" alt="{{member.knownAs}}" 
+                class="card-img-top img-thumbnail">
 ```
 
