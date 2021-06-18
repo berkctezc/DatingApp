@@ -20,6 +20,7 @@ namespace API.Controllers
         {
             return "secret text";
         }
+
         [HttpGet("not-found")]
         public ActionResult<AppUser> GetNotFound()
         {
@@ -29,6 +30,7 @@ namespace API.Controllers
 
             return NotFound(thing);
         }
+
         [HttpGet("server-error")]
         public ActionResult<string> GetServerError()
         {
@@ -38,6 +40,7 @@ namespace API.Controllers
 
             return thingToReturn;
         }
+
         [HttpGet("bad-request")]
         public ActionResult<string> GetBadRequest()
         {

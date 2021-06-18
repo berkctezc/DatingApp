@@ -1,6 +1,6 @@
+using API.Extensions;
 using System;
 using System.Collections.Generic;
-using API.Extensions;
 
 namespace API.Entities
 {
@@ -26,6 +26,5 @@ namespace API.Entities
         {
             return DateOfBirth.CalculateAge();
         }
-
     }
 }

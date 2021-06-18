@@ -1,12 +1,12 @@
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using API.Data;
 using API.DTOs;
 using API.Entities;
 using API.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace API.Controllers
 {
@@ -14,6 +14,7 @@ namespace API.Controllers
     {
         private readonly DataContext _context;
         private readonly ITokenService _tokenService;
+
         public AccountController(DataContext context, ITokenService tokenService)
         {
             _tokenService = tokenService;
