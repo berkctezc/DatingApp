@@ -1556,7 +1556,6 @@ export class ErrorInterceptor implements HttpInterceptor {
 ```
 
 * Display in view
-  
 
 ```html
   <div class="row mt-4" *ngIf="validationErrors.length > 0">
@@ -1664,3 +1663,32 @@ export class ServerErrorComponent implements OnInit {
         }
 ```
 
+ 
+
+### Entity Framework Relationships
+
+- To define one to many relationship between users and photos we are not going to add photos to dbcontext but we will appusers relations to the photo entity
+
+```cs
+    [Table("Photos")] // table name annotation
+    public class Photo
+    {
+        public int Id { get; set; }
+        public string Url { get; set; }
+        public bool IsMain { get; set; }
+        public string PublicId { get; set; }
+        // these fields define one to many in MANY(PHOTOS)
+        public AppUser AppUser { get; set; }
+        public int AppUserId { get; set; }
+    }
+
+    public class AppUser
+    {
+        //..
+        // this field define one to many in ONE(USER)
+         public ICollection<Photo> Photos { get; set; }
+        //....
+    }
+```
+
+### 
