@@ -1721,7 +1721,7 @@ export class ServerErrorComponent implements OnInit {
     }
 ```
 
-- Add functionality to Startup.cs to seed everything and apply migrations at every startup.
+- Add functionality to Program.cs to seed everything and apply migrations at every startup.
 
 ```cs
  public static async Task Main(string[] args)
@@ -1745,3 +1745,111 @@ export class ServerErrorComponent implements OnInit {
         }
 ```
 
+- Dropped database `dotnet ef database drop`
+- Run app and db will be seeded.
+
+### Applying Repository Pattern
+
+- Create Interface for User in Interfaces
+
+```cs
+    public interface IUserRepository
+    {
+        void Update(AppUser user);
+        Task<bool> SaveAllAsync();
+        Task<IEnumerable<AppUser>> GetUsersAsync();
+        Task<AppUser> GetUserByIdAsync(int id);
+        Task<AppUser> GetUserByUsernameAsync(string username);
+    }
+```
+
+* Create Repository for User in Data
+
+```cs
+public class UserRepository : IUserRepository
+    {
+        public DataContext _context { get; }
+        public UserRepository(DataContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<AppUser> GetUserByIdAsync(int id)
+        {
+            return await _context.AppUsers.FindAsync(id);
+        }
+
+        public async Task<AppUser> GetUserByUsernameAsync(string username)
+        {
+            return await _context.AppUsers.SingleOrDefaultAsync(x => x.UserName == username);
+        }
+
+        public async Task<IEnumerable<AppUser>> GetUsersAsync()
+        {
+            return await _context.AppUsers.ToListAsync();
+        }
+
+        public async Task<bool> SaveAllAsync()
+        {
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public void Update(AppUser user)
+        {
+            _context.Entry(user).State = EntityState.Modified;
+        }
+    }
+```
+
+- Add  `services.AddScoped<IUserRepository, UserRepository>();` to **ApplicationServiceExtensions**
+- Update **UsersController**
+
+```cs
+        private readonly IUserRepository _userRepository;
+        public UsersController(IUserRepository userRepository)
+        {
+            _userRepository = userRepository;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<AppUser>>> GetUsers()
+        {
+            return Ok(await _userRepository.GetUsersAsync());
+        }
+
+        // api/users/1
+        [HttpGet("{username}")]
+        public async Task<ActionResult<AppUser>> GetUser(string username)
+        {
+            return await _userRepository.GetUserByUsernameAsync(username);
+        }
+```
+
+- This controllers returns photo as null, lets fix that by adding a DTO for Members and Photos and in the next part lets use automapper
+
+```cs
+  public class MemberDto
+    {
+        public int Id { get; set; }
+        public string UserName { get; set; }
+        public int Age { get; set; }
+        public string KnownAs { get; set; }
+        public DateTime Created { get; set; }
+        public DateTime LastActive { get; set; }
+        public string Gender { get; set; }
+        public string Introduction { get; set; }
+        public string LookingFor { get; set; }
+        public string Interests { get; set; }
+        public string City { get; set; }
+        public string Country { get; set; }
+        public ICollection<PhotoDto> Photos { get; set; }
+    }
+    public class PhotoDto
+    {
+        public int Id { get; set; }
+        public string Url { get; set; }
+        public bool IsMain { get; set; }
+    }
+```
+
+### AutoMapper
