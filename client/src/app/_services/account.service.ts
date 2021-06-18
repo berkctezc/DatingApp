@@ -1,9 +1,9 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { ReplaySubject } from 'rxjs';
-import { map } from "rxjs/operators";
-import { environment } from 'src/environments/environment';
+import { HttpClient } from '@angular/common/http';
+import {map} from 'rxjs/operators';
 import { User } from '../_models/user';
+import { ReplaySubject } from 'rxjs';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -24,7 +24,7 @@ export class AccountService {
           this.currentUserSource.next(user);
         }
       })
-    );
+    )
   }
 
   register(model: any) {
@@ -34,7 +34,6 @@ export class AccountService {
           localStorage.setItem('user', JSON.stringify(user));
           this.currentUserSource.next(user);
         }
-        return user;
       })
     )
   }

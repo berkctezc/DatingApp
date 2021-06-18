@@ -27,7 +27,7 @@ namespace API.Controllers
 
             if (thing == null) return NotFound();
 
-            return Ok(thing);
+            return NotFound(thing);
         }
         [HttpGet("server-error")]
         public ActionResult<string> GetServerError()

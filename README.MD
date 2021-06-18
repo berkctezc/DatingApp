@@ -1995,3 +1995,25 @@ public class UserRepository : IUserRepository
 ## 8 - Building the User Interface
 
 - Created interfaces for member and photo
+
+* Create member service in _services **`ng g s members --skip-tests`**
+
+```ts
+const httpOptions = { // header config for carrying token to access authorized get requests
+  headers: new HttpHeaders({Authorization: 'Bearer' + JSON.parse(localStorage.getItem('user')).token})}
+
+@Injectable({providedIn: 'root'})
+export class MembersService {
+  baseUrl = environment.apiUrl;
+
+  constructor(private http: HttpClient) { }
+
+  getMembers() {
+    return this.http.get<Member[]>(this.baseUrl + 'users', httpOptions);
+  }
+  getMember(username: string) {
+    return this.http.get<Member[]>(this.baseUrl + 'users/' + username, httpOptions);
+  }
+}
+```
+
