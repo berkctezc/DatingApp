@@ -1308,7 +1308,7 @@ ng g m shared --flat
 })
 ```
 
-## 6 - Error Handling
+## 6 - Error Handling (BE+FE)
 
 ### Error Controller (BE)
 
@@ -1526,7 +1526,7 @@ export class TestErrorsComponent implements OnInit {
 </ng-container>
 ```
 
-### Adding an Error Interceptor
+### Adding an Error Interceptor (FE)
 
 - Create an interceptor
 
@@ -1597,9 +1597,9 @@ export class ErrorInterceptor implements HttpInterceptor {
     ],
   ```
 
-### Validation Errors
+### Validation Errors (FE)
 
-- test-errors.cmponent
+- test-errors.component
 
 ```ts
   validationErrors: string[] = [];
@@ -1625,7 +1625,7 @@ export class ErrorInterceptor implements HttpInterceptor {
 </div>
 ```
 
-### Handling not found
+### Handling not found (FE)
 
 ```bash
 cd src/app/errors
@@ -1634,7 +1634,7 @@ ng g c not-found --skip-tests
 
 - Create a not-found component and add it to route
 
-### Server Error Page
+### Server Error Page (FE)
 
 ```bash
 cd src/app/errors
@@ -1688,11 +1688,11 @@ export class ServerErrorComponent implements OnInit {
 
 - Add to routing
 
-## 7 - Extending the API
+## 7 - Extending the API (BE)
 
 ### Extending the user entity
 
-- added **DateOfBirth, KnownAs, Created, LastActive, Gender, Introduction,LookingFor, Interests, City, Country, Photos** (ICollection of Photo) props to **AppUser.cs**
+- added **DateOfBirth, KnownAs, Created, LastActive, Gender, Introduction, LookingFor, Interests, City, Country, Photos** (ICollection of Photo) props to **AppUser.cs**
 
 ### DateTime extension to calculate age
 
@@ -1968,4 +1968,30 @@ public class UserRepository : IUserRepository
                 .ForMember(dest => dest.Age, opt => opt.MapFrom(src => src.DateOfBirth.CalculateAge())); // from calculateAge method to age field of dto
 ```
 
-* 
+### AutoMapper Queryable Extensions
+
+- A more optimized way to get relational objects
+- Add Extra methods to interface and implement them in UserRepository
+
+```cs
+    public async Task<MemberDto> GetMemberAsync(string username)
+        {
+            return await _context.Users
+                .Where(x => x.UserName == username)
+                .ProjectTo<MemberDto>(_mapper.ConfigurationProvider)
+                .SingleOrDefaultAsync();
+        }
+
+        public async Task<IEnumerable<MemberDto>> GetMembersAsync()
+        {
+            return await _context.Users
+                .ProjectTo<MemberDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+        }
+```
+
+* Use in Controller
+
+## 8 - Building the User Interface
+
+- Created interfaces for member and photo
