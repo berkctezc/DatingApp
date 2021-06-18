@@ -1,4 +1,4 @@
-# NET 5.0 & Angular App Project
+# NET 5.0 & Angular Project
 
 This is a project for learning purposes named DatingApp.
 
@@ -1959,3 +1959,13 @@ public class UserRepository : IUserRepository
     }
 ```
 
+- Configuring AutoMapper to get photoUrl from photos array:
+
+```cs
+            CreateMap<AppUser, MemberDto>()
+                .ForMember(dest => dest.PhotoUrl // destination, our target
+                           , opt => opt.MapFrom(src =>src.Photos.FirstOrDefault(x => x.IsMain).Url)) // map from there to our target
+                .ForMember(dest => dest.Age, opt => opt.MapFrom(src => src.DateOfBirth.CalculateAge())); // from calculateAge method to age field of dto
+```
+
+* 
