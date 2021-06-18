@@ -9,13 +9,13 @@ namespace API.Data.Migrations
         {
             migrationBuilder.AddColumn<byte[]>(
                 name: "PasswordHash",
-                table: "AppUsers",
+                table: "Users",
                 type: "BLOB",
                 nullable: true);
 
             migrationBuilder.AddColumn<byte[]>(
                 name: "PasswordSalt",
-                table: "AppUsers",
+                table: "Users",
                 type: "BLOB",
                 nullable: true);
         }
@@ -24,11 +24,11 @@ namespace API.Data.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "PasswordHash",
-                table: "AppUsers");
+                table: "Users");
 
             migrationBuilder.DropColumn(
                 name: "PasswordSalt",
-                table: "AppUsers");
+                table: "Users");
         }
     }
 }

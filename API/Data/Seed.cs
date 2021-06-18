@@ -12,7 +12,7 @@ namespace API.Data
     {
         public static async Task SeedUsers(DataContext context)
         {
-            if (await context.AppUsers.AnyAsync()) return;
+            if (await context.Users.AnyAsync()) return;
 
             var userData = await System.IO.File.ReadAllTextAsync("Data/UserSeedData.json");
             var users = JsonSerializer.Deserialize<List<AppUser>>(userData);
@@ -25,7 +25,7 @@ namespace API.Data
                 user.PasswordSalt = hmac.Key;
                 user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes("Pa$$w0rd"));
 
-                await context.AppUsers.AddAsync(user);
+                await context.Users.AddAsync(user);
             }
 
             await context.SaveChangesAsync();

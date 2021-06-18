@@ -10,11 +10,6 @@ namespace API.Data
         {
         }
 
-        public DbSet<AppUser> AppUsers { get; set; }
-
-        internal object ToList()
-        {
-            throw new NotImplementedException();
-        }
+        public DbSet<AppUser> Users { get; set; }
     }
 }

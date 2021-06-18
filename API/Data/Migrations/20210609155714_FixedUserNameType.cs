@@ -8,7 +8,7 @@ namespace API.Data.Migrations
         {
             migrationBuilder.AlterColumn<string>(
                 name: "UserName",
-                table: "AppUsers",
+                table: "Users",
                 type: "TEXT",
                 nullable: true,
                 oldClrType: typeof(int),
@@ -19,7 +19,7 @@ namespace API.Data.Migrations
         {
             migrationBuilder.AlterColumn<int>(
                 name: "UserName",
-                table: "AppUsers",
+                table: "Users",
                 type: "INTEGER",
                 nullable: false,
                 defaultValue: 0,

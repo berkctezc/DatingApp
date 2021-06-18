@@ -9,64 +9,64 @@ namespace API.Data.Migrations
         {
             migrationBuilder.AddColumn<string>(
                 name: "City",
-                table: "AppUsers",
+                table: "Users",
                 type: "TEXT",
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "Country",
-                table: "AppUsers",
+                table: "Users",
                 type: "TEXT",
                 nullable: true);
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "Created",
-                table: "AppUsers",
+                table: "Users",
                 type: "TEXT",
                 nullable: false,
                 defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "DateOfBirth",
-                table: "AppUsers",
+                table: "Users",
                 type: "TEXT",
                 nullable: false,
                 defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
 
             migrationBuilder.AddColumn<string>(
                 name: "Gender",
-                table: "AppUsers",
+                table: "Users",
                 type: "TEXT",
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "Interests",
-                table: "AppUsers",
+                table: "Users",
                 type: "TEXT",
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "Introduction",
-                table: "AppUsers",
+                table: "Users",
                 type: "TEXT",
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "KnownAs",
-                table: "AppUsers",
+                table: "Users",
                 type: "TEXT",
                 nullable: true);
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "LastActive",
-                table: "AppUsers",
+                table: "Users",
                 type: "TEXT",
                 nullable: false,
                 defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
 
             migrationBuilder.AddColumn<string>(
                 name: "LookingFor",
-                table: "AppUsers",
+                table: "Users",
                 type: "TEXT",
                 nullable: true);
 
@@ -85,9 +85,9 @@ namespace API.Data.Migrations
                 {
                     table.PrimaryKey("PK_Photos", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Photos_AppUsers_AppUserId",
+                        name: "FK_Photos_Users_AppUserId",
                         column: x => x.AppUserId,
-                        principalTable: "AppUsers",
+                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -105,43 +105,43 @@ namespace API.Data.Migrations
 
             migrationBuilder.DropColumn(
                 name: "City",
-                table: "AppUsers");
+                table: "Users");
 
             migrationBuilder.DropColumn(
                 name: "Country",
-                table: "AppUsers");
+                table: "Users");
 
             migrationBuilder.DropColumn(
                 name: "Created",
-                table: "AppUsers");
+                table: "Users");
 
             migrationBuilder.DropColumn(
                 name: "DateOfBirth",
-                table: "AppUsers");
+                table: "Users");
 
             migrationBuilder.DropColumn(
                 name: "Gender",
-                table: "AppUsers");
+                table: "Users");
 
             migrationBuilder.DropColumn(
                 name: "Interests",
-                table: "AppUsers");
+                table: "Users");
 
             migrationBuilder.DropColumn(
                 name: "Introduction",
-                table: "AppUsers");
+                table: "Users");
 
             migrationBuilder.DropColumn(
                 name: "KnownAs",
-                table: "AppUsers");
+                table: "Users");
 
             migrationBuilder.DropColumn(
                 name: "LastActive",
-                table: "AppUsers");
+                table: "Users");
 
             migrationBuilder.DropColumn(
                 name: "LookingFor",
-                table: "AppUsers");
+                table: "Users");
         }
     }
 }

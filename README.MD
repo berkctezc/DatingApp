@@ -137,7 +137,7 @@ public void ConfigureServices(IServiceCollection services){
 - right click and click new query insert to add some data to db
 
 ```sqlite
-INSERT INTO AppUsers (Id, UserName) VALUES (1,"Bob");
+INSERT INTO Users (Id, UserName) VALUES (1,"Bob");
 ```
 
 ### Adding an API Controller
@@ -152,14 +152,14 @@ some action examples
 [HttpGet]
 public ActionResult<IEnumerable<AppUser>> GetUsers()
 {
-    return _context.AppUsers.ToList();
+    return _context.Users.ToList();
 }
 
 // api/users/1
 [HttpGet("{id}")]
 public ActionResult<AppUser> GetUsers(int id)
 {
-    return _context.AppUsers.Find(id);
+    return _context.Users.Find(id);
 }
 ```
 
@@ -173,7 +173,7 @@ public ActionResult<AppUser> GetUsers(int id)
   [HttpGet]
   public async Task<ActionResult<IEnumerable<AppUser>>> GetUsers()
   {
-      return await _context.AppUsers.ToListAsync();
+      return await _context.Users.ToListAsync();
   }
   ```
 
@@ -191,11 +191,11 @@ ng new <APPNAME> # create an angular app
 ng serve # compiles and serves the app on machine
 ng add <npp_packages> # installs npm package and configures the project
 
-ng g <schematics> # generate a schematics 
+ng g <schematics> # generate a schematics
 ng g -h # get a list of available schematics
 # common ones
 ng g c # component
-ng g s # service 
+ng g s # service
 ng g p # pipe
 ```
 
@@ -407,7 +407,7 @@ public async Task<ActionResult<AppUser>> Register(RegisterDto registerDto)
 ```cs
 private async Task<bool> UserExists(string username)
 {
-    return await _context.AppUsers.AnyAsync(x => x.UserName == username.ToLower());
+    return await _context.Users.AnyAsync(x => x.UserName == username.ToLower());
 }
 ```
 
@@ -429,7 +429,7 @@ public string Password { get; set; }
         public async Task<ActionResult<AppUser>> Login(LoginDto loginDto)
         {
             // check if this user exists. if we have user with that username then assign it to user, if not assign null to user
-            var user = await _context.AppUsers
+            var user = await _context.Users
             .SingleOrDefaultAsync(x => x.UserName == loginDto.Username);
 
             // if null return 401
@@ -672,24 +672,24 @@ public void ConfigureServices(IServiceCollection services)
 
 ### Creating a navbar
 
-* Create navbar with angular cli
+- Create navbar with angular cli
 
 ```bash
 cd src/app
 ng g c nav --skip-tests
 ```
 
-* After executing these commands NavComponent is added into declarations and imported. Also empty files created in a folder.
-* Fill html and add into app.component.html with `<app-nav>` tag.
+- After executing these commands NavComponent is added into declarations and imported. Also empty files created in a folder.
+- Fill html and add into app.component.html with `<app-nav>` tag.
 
 ### Angular Template Forms
 
-* import **FormsModule** in **app.module.ts**
-* Getting data from template with Two way binding. create a empty model in **nav.component.ts** and a login function to test it.
+- import **FormsModule** in **app.module.ts**
+- Getting data from template with Two way binding. create a empty model in **nav.component.ts** and a login function to test it.
 
 ```typescript
 export class NavComponent implements OnInit {
-  model: any = {}
+  model: any = {};
   constructor() {}
   ngOnInit(): void {}
   login() {
@@ -698,37 +698,37 @@ export class NavComponent implements OnInit {
 }
 ```
 
-- Set up the form. 
+- Set up the form.
 
-- (**ngSubmit)** executes the function given after clicking button that has submit as its type. 
+- (**ngSubmit)** executes the function given after clicking button that has submit as its type.
 
-- **#loginForm="ngForm"** marks form as an angular form. 
+- **#loginForm="ngForm"** marks form as an angular form.
 
 - **[(ngModel)]** binds the data to model we created in **nav.component.ts** (banana notation).
 
   ```html
-      <form
-        #loginForm="ngForm"
-        (ngSubmit)="login()"
-        class="d-flex"
-        autocomplete="off"
-      >
-        <input
-          name="username"
-          [(ngModel)]="model.username"
-          class="form-control me-2"
-          type="text"
-          placeholder="Username"
-        />
-        <input
-          name="password"
-          [(ngModel)]="model.password"
-          class="form-control me-2"
-          type="password"
-          placeholder="Password"
-        />
-        <button class="btn btn-outline-success" type="submit">Login</button>
-      </form>
+  <form
+    #loginForm="ngForm"
+    (ngSubmit)="login()"
+    class="d-flex"
+    autocomplete="off"
+  >
+    <input
+      name="username"
+      [(ngModel)]="model.username"
+      class="form-control me-2"
+      type="text"
+      placeholder="Username"
+    />
+    <input
+      name="password"
+      [(ngModel)]="model.password"
+      class="form-control me-2"
+      type="password"
+      placeholder="Password"
+    />
+    <button class="btn btn-outline-success" type="submit">Login</button>
+  </form>
   ```
 
   ### Angular Services
@@ -740,14 +740,14 @@ cd src/app
 mkdir _services
 ```
 
-* Generate the service with angular-cli
+- Generate the service with angular-cli
 
 ```bash
 cd _services
 ng g s account --skip-tests
 ```
 
-* Create a function for login operation
+- Create a function for login operation
 
 ```bash
 export class AccountService {
@@ -761,13 +761,13 @@ export class AccountService {
 
 ### Injecting services into components
 
-* Inject service in constructor of component like this
+- Inject service in constructor of component like this
 
 ```typescript
 export class NavComponent implements OnInit {
-//...  
-constructor(private accountService: AccountService) { }
-//..
+  //...
+  constructor(private accountService: AccountService) {}
+  //..
 }
 ```
 
@@ -783,29 +783,52 @@ constructor(private accountService: AccountService) { }
 
 ### Adding and removing content using conditionals
 
-* Disable the options for **loggedIn==false**
-* Show the options for **loggedIn==true**
-* Disable the login form and change it with welcome text for **loggedIn==true**
+- Disable the options for **loggedIn==false**
+- Show the options for **loggedIn==true**
+- Disable the login form and change it with welcome text for **loggedIn==true**
 
 ```html
 <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
   <div class="container container-fluid">
     <a class="navbar-brand" href="#">Dating App</a>
     <ul *ngIf="loggedIn" class="navbar-nav me-auto mb-2 mb-md-0">
-      <li class="nav-item"><a class="nav-link" aria-current="page" href="#">Matches</a></li>
+      <li class="nav-item">
+        <a class="nav-link" aria-current="page" href="#">Matches</a>
+      </li>
       <li class="nav-item"><a class="nav-link" href="#">Lists</a></li>
       <li class="nav-item"><a class="nav-link" href="#">Messages</a></li>
-      <li class="nav-item"><a class="nav-link" (click)="logout()" href="#">Logout</a></li>
+      <li class="nav-item">
+        <a class="nav-link" (click)="logout()" href="#">Logout</a>
+      </li>
     </ul>
     <div class="dropdown" *ngIf="loggedIn">
       <a class="dropdown-toggle text-light">Welcome {{ model.username }}</a>
       <div class="dropdown-menu">
-        <a class="dropdown-item">Edit Profile</a><a class="dropdown-item (click)=logout()">Logout</a>
+        <a class="dropdown-item">Edit Profile</a
+        ><a class="dropdown-item (click)=logout()">Logout</a>
       </div>
     </div>
-    <form *ngIf="!loggedIn" #loginForm="ngForm" (ngSubmit)="login()" class="d-flex" autocomplete="off">
-      <input name="username" [(ngModel)]="model.username" class="form-control me-2" type="text" placeholder="Username"/>
-      <input name="password" [(ngModel)]="model.password" class="form-control me-2" type="password" placeholder="Password"/>
+    <form
+      *ngIf="!loggedIn"
+      #loginForm="ngForm"
+      (ngSubmit)="login()"
+      class="d-flex"
+      autocomplete="off"
+    >
+      <input
+        name="username"
+        [(ngModel)]="model.username"
+        class="form-control me-2"
+        type="text"
+        placeholder="Username"
+      />
+      <input
+        name="password"
+        [(ngModel)]="model.password"
+        class="form-control me-2"
+        type="password"
+        placeholder="Password"
+      />
       <button class="btn btn-outline-success" type="submit">Login</button>
     </form>
   </div>
@@ -814,7 +837,7 @@ constructor(private accountService: AccountService) { }
 
 ### Using ngx-bootstrap components - dropdown
 
-* In **app.module.ts**
+- In **app.module.ts**
 
 ```ts
 import { BsDropdownModule } from "ngx-bootstrap/dropdown";
@@ -824,60 +847,65 @@ import { BsDropdownModule } from "ngx-bootstrap/dropdown";
   ],
 ```
 
-* In **nav.component.html** use **dropdown, dropdownToggle, *dropdownMenu**. for more info check ngx-bootstrap docs
+- In **nav.component.html** use **dropdown, dropdownToggle, \*dropdownMenu**. for more info check ngx-bootstrap docs
 
 ```html
-    <div class="dropdown" *ngIf="loggedIn" dropdown>
-      <a class="dropdown-toggle text-light" dropdownToggle>Welcome {{ model.username }}</a>
-      <div class="dropdown-menu" *dropdownMenu>
-        <a class="dropdown-item">Edit Profile</a>
-        <div class="dropdown-divider"></div>
-        <a class="dropdown-item" (click)="logout()">Logout</a>
-      </div>
-    </div>
+<div class="dropdown" *ngIf="loggedIn" dropdown>
+  <a class="dropdown-toggle text-light" dropdownToggle
+    >Welcome {{ model.username }}</a
+  >
+  <div class="dropdown-menu" *dropdownMenu>
+    <a class="dropdown-item">Edit Profile</a>
+    <div class="dropdown-divider"></div>
+    <a class="dropdown-item" (click)="logout()">Logout</a>
+  </div>
+</div>
 ```
 
 ### Persistent login
 
-* Create a User **user.ts** model in a new **_models** folder
+- Create a User **user.ts** model in a new **\_models** folder
 
 ```ts
 export interface User {
-    username: string;
-    token: string;
+  username: string;
+  token: string;
 }
 ```
 
-* Account operations in account.service.ts
+- Account operations in account.service.ts
 
 ```ts
 export class AccountService {
   //..
   private currentUserSource = new ReplaySubject<User>(1);
   currentUser$ = this.currentUserSource.asObservable();
-//..
+  //..
   login(model: any) {
-    return this.http.post(this.baseUrl + 'account/login', model).pipe(
+    return this.http.post(this.baseUrl + "account/login", model).pipe(
       map((response: User) => {
         const user = response;
         if (user) {
-          localStorage.setItem('user', JSON.stringify(user));
+          localStorage.setItem("user", JSON.stringify(user));
           this.currentUserSource.next(user);
-        }}));}
+        }
+      })
+    );
+  }
   setCurrentUser(user: User) {
     this.currentUserSource.next(user);
   }
   logout() {
-    localStorage.removeItem('user');
+    localStorage.removeItem("user");
     this.currentUserSource.next(null);
   }
 }
 ```
 
-* Operations in app.component.ts
+- Operations in app.component.ts
 
 ```ts
-//.. 
+//..
 constructor(private http: HttpClient,
     private accountService: AccountService
   ) { }
@@ -892,7 +920,7 @@ constructor(private http: HttpClient,
 //..
 ```
 
-* Operations in nav.component.ts
+- Operations in nav.component.ts
 
 ```ts
  ngOnInit(): void {
@@ -911,8 +939,8 @@ constructor(private http: HttpClient,
 
 ### Using the async pipe
 
-* Removed loggedIn variable, getCurrentUser in nav.component.ts, and made accountService injection public to use in html template
-* In template instead of ***ngIf="loggedIn"** we need ***ngIf="accountService.currentUser$ | async"**. And for ! we need to use === null
+- Removed loggedIn variable, getCurrentUser in nav.component.ts, and made accountService injection public to use in html template
+- In template instead of **\*ngIf="loggedIn"** we need **\*ngIf="accountService.currentUser$ | async"**. And for ! we need to use === null
 
 ### Adding a home page
 
@@ -920,12 +948,12 @@ constructor(private http: HttpClient,
 ng g c home # create a component named home
 ```
 
-* Register field for new users in **register.component.ts**
+- Register field for new users in **register.component.ts**
 
 ```ts
 export class HomeComponent implements OnInit {
   registerMode = false;
-//..
+  //..
   registerToggle() {
     this.registerMode = !this.registerMode;
   }
@@ -954,7 +982,7 @@ export class HomeComponent implements OnInit {
 </div>
 ```
 
-* Add component to **app.component.html** template `<app-home></app-home>`
+- Add component to **app.component.html** template `<app-home></app-home>`
 
 ### Adding a register form
 
@@ -962,18 +990,22 @@ export class HomeComponent implements OnInit {
 ng g c register # create a component named register
 ```
 
-* Created simple methods for testing
+- Created simple methods for testing
 
 ```ts
 export class RegisterComponent implements OnInit {
   model: any = {};
-//..
-  register() {console.log(this.model);}
-  cancel() {console.log('cancelled');}
+  //..
+  register() {
+    console.log(this.model);
+  }
+  cancel() {
+    console.log("cancelled");
+  }
 }
 ```
 
-* Form **register.component.html**
+- Form **register.component.html**
 
 ```html
 <form #registerForm="ngForm" (ngSubmit)="register()" autocomplete="off">
@@ -1006,34 +1038,41 @@ export class RegisterComponent implements OnInit {
 </form>
 ```
 
-* **home.component.html** => `<app-register></app-register>`
+- **home.component.html** => `<app-register></app-register>`
 
 ### Parent to child communication
 
-* In **home.component.ts** make get request to api to getUsers
+- In **home.component.ts** make get request to api to getUsers
 
 ```ts
 export class HomeComponent implements OnInit {
- //..
+  //..
   users: any;
-  constructor(private http: HttpClient) { }
-  ngOnInit(): void {this.getUsers();}
-  getUsers() {this.http.get("https://localhost:5001/api/users").subscribe(users => this.users = users);}}
+  constructor(private http: HttpClient) {}
+  ngOnInit(): void {
+    this.getUsers();
+  }
+  getUsers() {
+    this.http
+      .get("https://localhost:5001/api/users")
+      .subscribe((users) => (this.users = users));
+  }
+}
 ```
 
-* In **register.component.ts** (child of home) set a input paramater for parent to child relation
+- In **register.component.ts** (child of home) set a input paramater for parent to child relation
 
 ```ts
 @Input() usersFromHomeComponent: any;
 ```
 
-* Pass the parameter in **home.component.html** when calling **register.component.html** (child of home)
+- Pass the parameter in **home.component.html** when calling **register.component.html** (child of home)
 
 ```html
- <app-register [usersFromHomeComponent]="users"></app-register>
+<app-register [usersFromHomeComponent]="users"></app-register>
 ```
 
-* In **register.component.html** (child of home) use values like this
+- In **register.component.html** (child of home) use values like this
 
 ```html
   </div>
@@ -1049,13 +1088,13 @@ export class HomeComponent implements OnInit {
 
 ### Child to parent communication
 
-* In **register.component.ts**
+- In **register.component.ts**
 
 ```ts
  @Output() cancelRegister = new EventEmitter() // import from '@angular/core'
 ```
 
-* and use like this in a function
+- and use like this in a function
 
 ```ts
   cancel() {
@@ -1063,7 +1102,7 @@ export class HomeComponent implements OnInit {
   }
 ```
 
-* In **home.component.ts** (parent of register)
+- In **home.component.ts** (parent of register)
 
 ```ts
   cancelRegisterMode(event: boolean) {
@@ -1071,15 +1110,18 @@ export class HomeComponent implements OnInit {
   }
 ```
 
-* and lastly in **home.component.html** (parent of register)
+- and lastly in **home.component.html** (parent of register)
 
 ```html
-      <app-register [usersFromHomeComponent]="users" (cancelRegister)="cancelRegisterMode($event)"></app-register>
+<app-register
+  [usersFromHomeComponent]="users"
+  (cancelRegister)="cancelRegisterMode($event)"
+></app-register>
 ```
 
 ### Hooking up the register method to the service
 
-* Implement register method in **account.service.ts**
+- Implement register method in **account.service.ts**
 
 ```ts
   register(model: any) {
@@ -1095,7 +1137,7 @@ export class HomeComponent implements OnInit {
   }
 ```
 
-* In **register.component.ts** inject **account.service.ts** and use it in a function
+- In **register.component.ts** inject **account.service.ts** and use it in a function
 
 ```ts
 export class RegisterComponent implements OnInit {
@@ -1142,24 +1184,24 @@ const routes: Routes = [
 ];
 ```
 
-* In **app.component.html** use `<router-outlet></router-outlet>`instead of `<app-home></app-home>`
+- In **app.component.html** use `<router-outlet></router-outlet>`instead of `<app-home></app-home>`
 
 ### Adding the nav links
 
-* In nav.component.html add the route to `<a>` tags with `routerLink=''`
-* And with `routerLinkActive=''` you can add a css class when route is active
+- In nav.component.html add the route to `<a>` tags with `routerLink=''`
+- And with `routerLinkActive=''` you can add a css class when route is active
 
 ### Routing in code
 
-* Inject Router in component.ts
-* In functions call router like this `this.router.navigateByUrl('/members');`
+- Inject Router in component.ts
+- In functions call router like this `this.router.navigateByUrl('/members');`
 
 ### Adding toastr service for notifications
 
-* `npm install ngx-toastr`
-* In **angular.json** add  `"./node_modules/font-awesome/css/font-awesome.css","./node_modules/ngx-toastr/toastr.css"` in styles array
-* In **app.module.ts** add **ToastrModule** to imports array and configure like this  `ToastrModule.forRoot({positionClass: 'toast-bottom-right'})`
-* Inject in **component.ts** and use it in functions like `this.toastr.error(error)` or `this.toastr.success('message')` (also warning and info is available)
+- `npm install ngx-toastr`
+- In **angular.json** add `"./node_modules/font-awesome/css/font-awesome.css","./node_modules/ngx-toastr/toastr.css"` in styles array
+- In **app.module.ts** add **ToastrModule** to imports array and configure like this `ToastrModule.forRoot({positionClass: 'toast-bottom-right'})`
+- Inject in **component.ts** and use it in functions like `this.toastr.error(error)` or `this.toastr.success('message')` (also warning and info is available)
 
 ### Angular Route Guard
 
@@ -1170,25 +1212,27 @@ cd _guards
 ng g guard auth --skip-tests
 ```
 
-* add a constructor, simply guard and implement
+- add a constructor, simply guard and implement
 
 ```ts
 export class AuthGuard implements CanActivate {
-
   constructor(
     private accountService: AccountService,
-    private toastr: ToastrService) { }
+    private toastr: ToastrService
+  ) {}
 
   canActivate(): Observable<boolean> {
-    return this.accountService.currentUser$.pipe(map(user => {
-      if (user) return true;
-      this.toastr.error('You shall not pass!');
-    }));
+    return this.accountService.currentUser$.pipe(
+      map((user) => {
+        if (user) return true;
+        this.toastr.error("You shall not pass!");
+      })
+    );
   }
 }
 ```
 
-* add to routing module like
+- add to routing module like
 
 ```ts
   { path: 'members', component: MemberListComponent, canActivate: [AuthGuard] },
@@ -1230,7 +1274,7 @@ cd _modules
 ng g m shared --flat
 ```
 
-* Move some modules into shared.module.ts and import in in app.module.ts
+- Move some modules into shared.module.ts and import in in app.module.ts
 
 ```ts
 // app.module.ts
@@ -1289,7 +1333,7 @@ public class BuggyController : BaseApiController
         [HttpGet("not-found")]
         public ActionResult<AppUser> GetNotFound()
         {
-            var thing = _context.AppUsers.Find(-1);
+            var thing = _context.Users.Find(-1);
 
             if (thing == null) return NotFound();
 
@@ -1298,7 +1342,7 @@ public class BuggyController : BaseApiController
         [HttpGet("server-error")]
         public ActionResult<string> GetServerError()
         {
-            var thing = _context.AppUsers.Find(-1);
+            var thing = _context.Users.Find(-1);
 
             var thingToReturn = thing.ToString();
 
@@ -1314,7 +1358,7 @@ public class BuggyController : BaseApiController
 
 ### Exception Handling Middleware (BE)
 
-- Created an errors entity named **ApiException** in **Errors** folder. 
+- Created an errors entity named **ApiException** in **Errors** folder.
 
 ```cs
 namespace API.Errors
@@ -1383,7 +1427,7 @@ namespace API.Middleware
 
 ### Testing Errors in the Client (FE)
 
-* Create test errors component
+- Create test errors component
 
 ```bash
 cd src/app
@@ -1392,56 +1436,70 @@ cd errors
 ng g c test-errors --skip-tests
 ```
 
-- Add to routing  `{ path: 'errors', component: TestErrorsComponent }`
+- Add to routing `{ path: 'errors', component: TestErrorsComponent }`
 - Make requests to the api buggy controller in **test-errors.component.ts**
 
 ```ts
 export class TestErrorsComponent implements OnInit {
-  baseUrl = 'https://localhost:5001/api/';
+  baseUrl = "https://localhost:5001/api/";
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
   get404Error() {
-    this.http.get(this.baseUrl + 'buggy/not-found').subscribe(response => {
-      console.log(response);
-    }, error => {
-      console.log(error);
-    })
+    this.http.get(this.baseUrl + "buggy/not-found").subscribe(
+      (response) => {
+        console.log(response);
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
   }
 
   get400Error() {
-    this.http.get(this.baseUrl + 'buggy/bad-request').subscribe(response => {
-      console.log(response);
-    }, error => {
-      console.log(error);
-    })
+    this.http.get(this.baseUrl + "buggy/bad-request").subscribe(
+      (response) => {
+        console.log(response);
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
   }
 
   get500Error() {
-    this.http.get(this.baseUrl + 'buggy/server-error').subscribe(response => {
-      console.log(response);
-    }, error => {
-      console.log(error);
-    })
+    this.http.get(this.baseUrl + "buggy/server-error").subscribe(
+      (response) => {
+        console.log(response);
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
   }
 
   get401Error() {
-    this.http.get(this.baseUrl + 'buggy/auth').subscribe(response => {
-      console.log(response);
-    }, error => {
-      console.log(error);
-    })
+    this.http.get(this.baseUrl + "buggy/auth").subscribe(
+      (response) => {
+        console.log(response);
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
   }
 
   get400ValidationError() {
-    this.http.post(this.baseUrl + 'account/register', {}).subscribe(response => {
-      console.log(response);
-    }, error => {
-      console.log(error);
-    })
+    this.http.post(this.baseUrl + "account/register", {}).subscribe(
+      (response) => {
+        console.log(response);
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
   }
 }
 ```
@@ -1470,7 +1528,7 @@ export class TestErrorsComponent implements OnInit {
 
 ### Adding an Error Interceptor
 
-* Create an interceptor
+- Create an interceptor
 
 ```bash
 cd /src/app
@@ -1483,12 +1541,14 @@ ng g interceptor error --skip-tests
 
 ```ts
 export class ErrorInterceptor implements HttpInterceptor {
+  constructor(private router: Router, private toastr: ToastrService) {}
 
-  constructor(private router: Router, private toastr: ToastrService) { }
-
-  intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+  intercept(
+    request: HttpRequest<unknown>,
+    next: HttpHandler
+  ): Observable<HttpEvent<unknown>> {
     return next.handle(request).pipe(
-      catchError(error => {
+      catchError((error) => {
         if (error) {
           switch (error.status) {
             case 400:
@@ -1508,14 +1568,16 @@ export class ErrorInterceptor implements HttpInterceptor {
               this.toastr.error(error.statusText, error.status);
               break;
             case 404:
-              this.router.navigateByUrl('/not-found');
+              this.router.navigateByUrl("/not-found");
               break;
             case 500:
-              const navigationExtras: NavigationExtras = { state: { error: error.error } }
-              this.router.navigateByUrl('/server-error', navigationExtras);
+              const navigationExtras: NavigationExtras = {
+                state: { error: error.error },
+              };
+              this.router.navigateByUrl("/server-error", navigationExtras);
               break;
             default:
-              this.toastr.error('Something unexpected went wrong');
+              this.toastr.error("Something unexpected went wrong");
               console.log(error);
               break;
           }
@@ -1527,15 +1589,13 @@ export class ErrorInterceptor implements HttpInterceptor {
 }
 ```
 
-* Add to providers in app.module.ts
+- Add to providers in app.module.ts
 
   ```ts
     providers: [
       { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true }
     ],
   ```
-
-  
 
 ### Validation Errors
 
@@ -1555,16 +1615,14 @@ export class ErrorInterceptor implements HttpInterceptor {
   }
 ```
 
-* Display in view
+- Display in view
 
 ```html
-  <div class="row mt-4" *ngIf="validationErrors.length > 0">
-    <ul class="text-danger">
-      <li *ngFor="let error of validationErrors">
-        {{ error }}
-      </li>
-    </ul>
-  </div>
+<div class="row mt-4" *ngIf="validationErrors.length > 0">
+  <ul class="text-danger">
+    <li *ngFor="let error of validationErrors">{{ error }}</li>
+  </ul>
+</div>
 ```
 
 ### Handling not found
@@ -1593,8 +1651,7 @@ export class ServerErrorComponent implements OnInit {
     const navigation = this.router.getCurrentNavigation();
     this.error = navigation?.extras?.state?.error;
   }
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 }
 ```
 
@@ -1623,19 +1680,19 @@ export class ServerErrorComponent implements OnInit {
     Following is the stack trace - this is where your investigation should
     start!
   </p>
-  <code class="mt-5" style="background-color: whitesmoke">{{
-    error.details
-  }}</code>
+  <code class="mt-5" style="background-color: whitesmoke"
+    >{{ error.details }}</code
+  >
 </ng-container>
 ```
 
-* Add to routing
+- Add to routing
 
 ## 7 - Extending the API
 
 ### Extending the user entity
 
-* added  **DateOfBirth, KnownAs, Created, LastActive, Gender, Introduction,LookingFor, Interests, City, Country, Photos** (ICollection of Photo) props to **AppUser.cs**
+- added **DateOfBirth, KnownAs, Created, LastActive, Gender, Introduction,LookingFor, Interests, City, Country, Photos** (ICollection of Photo) props to **AppUser.cs**
 
 ### DateTime extension to calculate age
 
@@ -1663,11 +1720,9 @@ export class ServerErrorComponent implements OnInit {
         }
 ```
 
- 
-
 ### Entity Framework Relationships
 
-- To define one to many relationship between users and photos we are not going to add photos to dbcontext but we will appusers relations to the photo entity
+- To define one to many relationship between users and photos we are not going to add photos to dbcontext but we will Users relations to the photo entity
 
 ```cs
     [Table("Photos")] // table name annotation
@@ -1701,7 +1756,7 @@ export class ServerErrorComponent implements OnInit {
     {
         public static async Task SeedUsers(DataContext context)
         {
-            if (await context.AppUsers.AnyAsync()) return;
+            if (await context.Users.AnyAsync()) return;
 
             string SeedDataPath = "Data/UserSeedData.json";
 
@@ -1715,7 +1770,7 @@ export class ServerErrorComponent implements OnInit {
                 user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes("Pa$$w0rd"));
                 user.PasswordSalt = hmac.Key;
 
-                context.AppUsers.Add(user);
+                context.Users.Add(user);
             }
         }
     }
@@ -1763,7 +1818,7 @@ export class ServerErrorComponent implements OnInit {
     }
 ```
 
-* Create Repository for User in Data
+- Create Repository for User in Data
 
 ```cs
 public class UserRepository : IUserRepository
@@ -1776,17 +1831,17 @@ public class UserRepository : IUserRepository
 
         public async Task<AppUser> GetUserByIdAsync(int id)
         {
-            return await _context.AppUsers.FindAsync(id);
+            return await _context.Users.FindAsync(id);
         }
 
         public async Task<AppUser> GetUserByUsernameAsync(string username)
         {
-            return await _context.AppUsers.SingleOrDefaultAsync(x => x.UserName == username);
+            return await _context.Users.SingleOrDefaultAsync(x => x.UserName == username);
         }
 
         public async Task<IEnumerable<AppUser>> GetUsersAsync()
         {
-            return await _context.AppUsers.ToListAsync();
+            return await _context.Users.ToListAsync();
         }
 
         public async Task<bool> SaveAllAsync()
@@ -1801,7 +1856,7 @@ public class UserRepository : IUserRepository
     }
 ```
 
-- Add  `services.AddScoped<IUserRepository, UserRepository>();` to **ApplicationServiceExtensions**
+- Add `services.AddScoped<IUserRepository, UserRepository>();` to **ApplicationServiceExtensions**
 - Update **UsersController**
 
 ```cs
@@ -1853,3 +1908,54 @@ public class UserRepository : IUserRepository
 ```
 
 ### AutoMapper
+
+- Install **`AutoMapper.Extensions.Microsoft.DependencyInjection`** with NuGet
+- Create Helpers Folder and Create **AutoMapperProfiles**
+
+```cs
+    public class AutoMapperProfiles : Profile
+    {
+        public AutoMapperProfiles()
+        {
+            CreateMap<AppUser, MemberDto>();
+            CreateMap<Photo, PhotoDto>();
+        }
+    }
+```
+
+- Add to Extensions **`services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);`**
+
+* Update Controller
+
+```cs
+    public class UsersController : BaseApiController
+    {
+        private readonly IUserRepository _userRepository;
+        private readonly IMapper _mapper;
+        public UsersController(IUserRepository userRepository, IMapper mapper)
+        {
+            _mapper = mapper;
+            _userRepository = userRepository;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers()
+        {
+            var users = await _userRepository.GetUsersAsync();
+
+            var usersToReturn = _mapper.Map<IEnumerable<MemberDto>>(users);
+
+            return Ok(usersToReturn);
+        }
+
+        // api/users/1
+        [HttpGet("{username}")]
+        public async Task<ActionResult<MemberDto>> GetUser(string username)
+        {
+            var user = await _userRepository.GetUserByUsernameAsync(username);
+
+            return _mapper.Map<MemberDto>(user);
+        }
+    }
+```
+
