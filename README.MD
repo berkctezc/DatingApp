@@ -1992,11 +1992,11 @@ public class UserRepository : IUserRepository
 
 * Use in Controller
 
-## 8 - Building the User Interface
+## 8 - Building the User Interface (FE)
 
 - Created interfaces for member and photo
-- Moved apiıUrl to environment files
-- Create member service in _services **`ng g s members --skip-tests`**
+- Moved **apiUrl** to environment files
+- Create member service in **_services** **`ng g s members --skip-tests`**
 
 ```ts
 export class MembersService {
@@ -2016,7 +2016,7 @@ export class MembersService {
 
 ### Retrieving the list of members
 
-- In member-list.component.ts
+- In **member-list.component.ts**
 
 ```ts
 export class MemberListComponent implements OnInit {
@@ -2036,7 +2036,7 @@ export class MemberListComponent implements OnInit {
 }
 ```
 
-* In member-list.component.html
+* In **member-list.component.html**
 
 ```html
 <div class="row">
@@ -2055,13 +2055,13 @@ cd src/app/members
 ng g c member-car --skip-tests
 ```
 
-* In member-card.component.ts add input field.
+* In **member-card.component.ts** add input field.
 
 ```ts
 @Input() member: Member;
 ```
 
-- In member-card.component.html
+- In **member-card.component.html**
 
 ```html
 <div class="card mb-4">
@@ -2085,7 +2085,7 @@ ng g c member-car --skip-tests
 </div>
 ```
 
-- Add style to member-card.component.css
+- Add style to **member-card.component.css**
 
 ```css
 .card:hover img {
@@ -2128,7 +2128,7 @@ cd src/app/_interceptors
 ng g interceptor jwt --skip-tests
 ```
 
-- jwt.interceptor.ts
+- **jwt.interceptor.ts**
 
 ```ts
 export class JwtInterceptor implements HttpInterceptor {
@@ -2146,7 +2146,7 @@ export class JwtInterceptor implements HttpInterceptor {
   }}
 ```
 
-- add to app.module.ts `{provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true}`
+- add to **app.module.ts** `{provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true}`
 
 ### Routing to Detail page
 
@@ -2382,5 +2382,40 @@ export class MemberDetailComponent implements OnInit {
 ```html
             <img src="{{member.photoUrl || './assets/user.png'}}" alt="{{member.knownAs}}" 
                 class="card-img-top img-thumbnail">
+```
+
+## 9 - Updating Resources
+
+### Member edit component
+
+```bash
+cd src/app/members
+ng g c member-edit --skip-tests
+```
+
+- add to routing and add routerLink to `<a>` in html
+- **member.edit.component.ts**
+
+```ts
+export class MemberEditComponent implements OnInit {
+  member: Member;user: User;
+  constructor(
+    private accountService: AccountService,
+    private memberService: MembersService) {
+  this.accountService.currentUser$.pipe(take(1)).subscribe(user => this.user = user);
+  }
+  ngOnInit(): void {
+    this.loadMember();
+  }
+  loadMember() {
+  this.memberService.getMember(this.user.username).subscribe(member => {
+      this.member = member;
+    })}}
+```
+
+* Access in html
+
+```html
+<h1 *ngIf="member">{{ member.username }}</h1>
 ```
 
