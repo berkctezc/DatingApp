@@ -1990,26 +1990,26 @@ public class UserRepository : IUserRepository
         }
 ```
 
-* Use in Controller
+- Use in Controller
 
 ## 8 - Building the User Interface (FE)
 
 - Created interfaces for member and photo
 - Moved **apiUrl** to environment files
-- Create member service in **_services** **`ng g s members --skip-tests`**
+- Create member service in **\_services** **`ng g s members --skip-tests`**
 
 ```ts
 export class MembersService {
   baseUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
   getMembers() {
-    return this.http.get<Member[]>(this.baseUrl + 'users');
+    return this.http.get<Member[]>(this.baseUrl + "users");
   }
 
   getMember(username: string) {
-    return this.http.get<Member>(this.baseUrl + 'users/' + username);
+    return this.http.get<Member>(this.baseUrl + "users/" + username);
   }
 }
 ```
@@ -2022,21 +2022,21 @@ export class MembersService {
 export class MemberListComponent implements OnInit {
   members: Member[];
 
-  constructor(private memberService: MembersService) { }
+  constructor(private memberService: MembersService) {}
 
   ngOnInit(): void {
     this.loadMembers();
   }
 
   loadMembers() {
-    this.memberService.getMembers().subscribe(members => {
+    this.memberService.getMembers().subscribe((members) => {
       this.members = members;
-    })
+    });
   }
 }
 ```
 
-* In **member-list.component.html**
+- In **member-list.component.html**
 
 ```html
 <div class="row">
@@ -2055,7 +2055,7 @@ cd src/app/members
 ng g c member-car --skip-tests
 ```
 
-* In **member-card.component.ts** add input field.
+- In **member-card.component.ts** add input field.
 
 ```ts
 @Input() member: Member;
@@ -2065,23 +2065,37 @@ ng g c member-car --skip-tests
 
 ```html
 <div class="card mb-4">
-    <div class="card-img-wrapper">
-        <img src="{{member.photoUrl || './assets/user.png'}}" alt="{{member.knownAs}}" class="card-img-top">
-        <ul class="list-inline member-icons animate text-center">
-            <li class="list-inline-item"><button class="btn btn-primary">
-                <i class="fa fa-user"></i></button></li>
-            <li class="list-inline-item"><button class="btn btn-primary">
-                <i class="fa fa-heart"></i></button></li>
-            <li class="list-inline-item"><button class="btn btn-primary">
-                <i class="fa fa-envelope"></i></button></li>
-        </ul>
-    </div>
-    <div class="card-body p-1">
-        <h6 class="card-title text-center mb-1"><i class="fa fa-user mr-2"></i>
-            {{member.knownAs}}
-        </h6>
-        <p class="card-text text-muted text-center">{{member.city}}</p>
-    </div>
+  <div class="card-img-wrapper">
+    <img
+      src="{{member.photoUrl || './assets/user.png'}}"
+      alt="{{member.knownAs}}"
+      class="card-img-top"
+    />
+    <ul class="list-inline member-icons animate text-center">
+      <li class="list-inline-item">
+        <button class="btn btn-primary">
+          <i class="fa fa-user"></i>
+        </button>
+      </li>
+      <li class="list-inline-item">
+        <button class="btn btn-primary">
+          <i class="fa fa-heart"></i>
+        </button>
+      </li>
+      <li class="list-inline-item">
+        <button class="btn btn-primary">
+          <i class="fa fa-envelope"></i>
+        </button>
+      </li>
+    </ul>
+  </div>
+  <div class="card-body p-1">
+    <h6 class="card-title text-center mb-1">
+      <i class="fa fa-user mr-2"></i>
+      {{member.knownAs}}
+    </h6>
+    <p class="card-text text-muted text-center">{{member.city}}</p>
+  </div>
 </div>
 ```
 
@@ -2089,35 +2103,35 @@ ng g c member-car --skip-tests
 
 ```css
 .card:hover img {
-    transform: scale(1.2, 1.2);
-    transition-duration: 500ms;
-    transition-timing-function: ease-out;
-    opacity: 0.7;
+  transform: scale(1.2, 1.2);
+  transition-duration: 500ms;
+  transition-timing-function: ease-out;
+  opacity: 0.7;
 }
 .card img {
-    transform: scale(1.0, 1.0);
-    transition-duration: 500ms;
-    transition-timing-function: ease-out;
+  transform: scale(1, 1);
+  transition-duration: 500ms;
+  transition-timing-function: ease-out;
 }
 .card-img-wrapper {
-    overflow: hidden;
-    position: relative;
+  overflow: hidden;
+  position: relative;
 }
 .member-icons {
-    position: absolute;
-    bottom: -30%;
-    left: 0;
-    right: 0;
-    margin-right: auto;
-    margin-left: auto;
-    opacity: 0;
+  position: absolute;
+  bottom: -30%;
+  left: 0;
+  right: 0;
+  margin-right: auto;
+  margin-left: auto;
+  opacity: 0;
 }
 .card-img-wrapper:hover .member-icons {
-    bottom: 0;
-    opacity: 1;
+  bottom: 0;
+  opacity: 1;
 }
 .animate {
-    transition: all 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
 }
 ```
 
@@ -2134,16 +2148,24 @@ ng g interceptor jwt --skip-tests
 export class JwtInterceptor implements HttpInterceptor {
   constructor(private accountService: AccountService) {}
 
-  intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+  intercept(
+    request: HttpRequest<unknown>,
+    next: HttpHandler
+  ): Observable<HttpEvent<unknown>> {
     let currentUser: User;
-    this.accountService.currentUser$.pipe(take(1)).subscribe(user => currentUser = user);
+    this.accountService.currentUser$
+      .pipe(take(1))
+      .subscribe((user) => (currentUser = user));
     if (currentUser) {
       request = request.clone({
         setHeaders: {
-          Authorization: `Bearer ${currentUser.token}`
-        }})}
+          Authorization: `Bearer ${currentUser.token}`,
+        },
+      });
+    }
     return next.handle(request);
-  }}
+  }
+}
 ```
 
 - add to **app.module.ts** `{provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true}`
@@ -2156,16 +2178,21 @@ export class JwtInterceptor implements HttpInterceptor {
 export class MemberDetailComponent implements OnInit {
   member: Member;
 
-  constructor(private memberService: MembersService, private route: ActivatedRoute) { }
+  constructor(
+    private memberService: MembersService,
+    private route: ActivatedRoute
+  ) {}
 
   ngOnInit(): void {
     this.loadMember();
   }
 
   loadMember() {
-    this.memberService.getMember(this.route.snapshot.paramMap.get('username')).subscribe(member => {
-      this.member = member;
-    })
+    this.memberService
+      .getMember(this.route.snapshot.paramMap.get("username"))
+      .subscribe((member) => {
+        this.member = member;
+      });
   }
 }
 ```
@@ -2185,36 +2212,39 @@ export class MemberDetailComponent implements OnInit {
 
 ```html
 <div class="row" *ngIf="member">
-    <div class="col-4">
-        <div class="card">
-            <img src="{{member.photoUrl || './assets/user.png'}}" alt="{{member.knownAs}}" 
-                class="card-img-top img-thumbnail">
-            <div class="card-body">
-                <div>
-                    <strong>Location:</strong>
-                    <p>{{member.city}}, {{member.country}}</p>
-                </div>
-                <div>
-                    <strong>Age:</strong>
-                    <p>{{member.age}}</p>
-                </div>
-                <div>
-                    <strong>Last Active:</strong>
-                    <p>{{member.lastActive}}</p>
-                </div>
-                <div>
-                    <strong>Member since:</strong>
-                    <p>{{member.created}}</p>
-                </div>
-            </div>
-            <div class="card-footer">
-                <div class="btn-group d-flex">
-                    <button class="btn btn-primary">Like</button>
-                    <button class="btn btn-success">Message</button>
-                </div>
-            </div>
+  <div class="col-4">
+    <div class="card">
+      <img
+        src="{{member.photoUrl || './assets/user.png'}}"
+        alt="{{member.knownAs}}"
+        class="card-img-top img-thumbnail"
+      />
+      <div class="card-body">
+        <div>
+          <strong>Location:</strong>
+          <p>{{member.city}}, {{member.country}}</p>
         </div>
+        <div>
+          <strong>Age:</strong>
+          <p>{{member.age}}</p>
+        </div>
+        <div>
+          <strong>Last Active:</strong>
+          <p>{{member.lastActive}}</p>
+        </div>
+        <div>
+          <strong>Member since:</strong>
+          <p>{{member.created}}</p>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="btn-group d-flex">
+          <button class="btn btn-primary">Like</button>
+          <button class="btn btn-success">Message</button>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 ```
 
@@ -2222,17 +2252,17 @@ export class MemberDetailComponent implements OnInit {
 
 ```css
 .img-thumbnail {
-    margin: 25px;
-    width: 85%;
-    height: 85%;
+  margin: 25px;
+  width: 85%;
+  height: 85%;
 }
 .card-body {
-    padding: 0 25px;
+  padding: 0 25px;
 }
 .card-footer {
-    padding: 10px 15px;
-    background-color: #fff;
-    border-top: none;
+  padding: 10px 15px;
+  background-color: #fff;
+  border-top: none;
 }
 ```
 
@@ -2241,26 +2271,26 @@ export class MemberDetailComponent implements OnInit {
 - Added tabset to **member-detail.component.html**
 
 ```html
-    <div class="col-8">
-        <tabset class="member-tabset">
-            <tab heading='About {{member.knownAs}}'>
-                <h4>Description</h4>
-                <p>{{member.introduction}}</p>
-                <h4>Looking for</h4>
-                <p>{{member.lookingFor}}</p>
-            </tab>
-            <tab heading='Interests'>
-                <h4>Interests</h4>
-                <p>{{member.interests}}</p>
-            </tab>
-            <tab heading='Photos'>
-			<p>Photos will go here</p>
-            </tab>
-            <tab heading='Messages'>
-                <p>Messages will go here</p>
-            </tab>
-        </tabset>
-    </div>
+<div class="col-8">
+  <tabset class="member-tabset">
+    <tab heading="About {{member.knownAs}}">
+      <h4>Description</h4>
+      <p>{{member.introduction}}</p>
+      <h4>Looking for</h4>
+      <p>{{member.lookingFor}}</p>
+    </tab>
+    <tab heading="Interests">
+      <h4>Interests</h4>
+      <p>{{member.interests}}</p>
+    </tab>
+    <tab heading="Photos">
+      <p>Photos will go here</p>
+    </tab>
+    <tab heading="Messages">
+      <p>Messages will go here</p>
+    </tab>
+  </tabset>
+</div>
 ```
 
 - In global **styles.css**
@@ -2271,22 +2301,26 @@ export class MemberDetailComponent implements OnInit {
   padding: 10px;
   border-radius: 4px;
 }
-.nav-tabs > li.open, .member-tabset > .nav-tabs > li:hover {
+.nav-tabs > li.open,
+.member-tabset > .nav-tabs > li:hover {
   border-bottom: 4px solid #fbcdcf;
 }
-.member-tabset > .nav-tabs > li.open > a, .member-tabset > .nav-tabs > li:hover > a {
+.member-tabset > .nav-tabs > li.open > a,
+.member-tabset > .nav-tabs > li:hover > a {
   border: 0;
   background: none !important;
   color: #333333;
 }
-.member-tabset > .nav-tabs > li.open > a > i, .member-tabset > .nav-tabs > li:hover > a > i {
+.member-tabset > .nav-tabs > li.open > a > i,
+.member-tabset > .nav-tabs > li:hover > a > i {
   color: #a6a6a6;
 }
-.member-tabset > .nav-tabs > li.open .dropdown-menu, .member-tabset > .nav-tabs > li:hover .dropdown-menu {
+.member-tabset > .nav-tabs > li.open .dropdown-menu,
+.member-tabset > .nav-tabs > li:hover .dropdown-menu {
   margin-top: 0px;
 }
 .member-tabset > .nav-tabs > li.active {
-  border-bottom: 4px solid #E95420;
+  border-bottom: 4px solid #e95420;
   position: relative;
 }
 .member-tabset > .nav-tabs > li.active > a {
@@ -2331,38 +2365,43 @@ export class MemberDetailComponent implements OnInit {
   member: Member;
   galleryOptions: NgxGalleryOptions[]; //set these
   galleryImages: NgxGalleryImage[];
-  constructor(private memberService: MembersService, private route: ActivatedRoute) { }
+  constructor(
+    private memberService: MembersService,
+    private route: ActivatedRoute
+  ) {}
   ngOnInit(): void {
     this.loadMember();
 
     this.galleryOptions = [
       {
-        width: '500px',
-        height: '500px',
+        width: "500px",
+        height: "500px",
         imagePercent: 100,
         thumbnailsColumns: 4,
         imageAnimation: NgxGalleryAnimation.Slide,
-        preview: false
-      }
-    ]
+        preview: false,
+      },
+    ];
   }
-    // get images from db
+  // get images from db
   getImages(): NgxGalleryImage[] {
     const imageUrls = [];
     for (const photo of this.member.photos) {
       imageUrls.push({
         small: photo?.url,
         medium: photo?.url,
-        big: photo?.url
-      })
+        big: photo?.url,
+      });
     }
     return imageUrls;
   }
   loadMember() {
-    this.memberService.getMember(this.route.snapshot.paramMap.get('username')).subscribe(member => {
-      this.member = member;
-      this.galleryImages = this.getImages();
-    })
+    this.memberService
+      .getMember(this.route.snapshot.paramMap.get("username"))
+      .subscribe((member) => {
+        this.member = member;
+        this.galleryImages = this.getImages();
+      });
   }
 }
 ```
@@ -2370,18 +2409,24 @@ export class MemberDetailComponent implements OnInit {
 - Insert this into html
 
 ```html
-            <tab heading='Photos'>
-                <ngx-gallery [options]="galleryOptions" [images]="galleryImages" 
-                    style="display: inline-block; margin-bottom: 20px;"></ngx-gallery>
-            </tab>
+<tab heading="Photos">
+  <ngx-gallery
+    [options]="galleryOptions"
+    [images]="galleryImages"
+    style="display: inline-block; margin-bottom: 20px;"
+  ></ngx-gallery>
+</tab>
 ```
 
 - Add a placeholder for user. Place an placeholder image on assets
 - In html use it like this (if member.photoUrl is null set to placeholder)
 
 ```html
-            <img src="{{member.photoUrl || './assets/user.png'}}" alt="{{member.knownAs}}" 
-                class="card-img-top img-thumbnail">
+<img
+  src="{{member.photoUrl || './assets/user.png'}}"
+  alt="{{member.knownAs}}"
+  class="card-img-top img-thumbnail"
+/>
 ```
 
 ## 9 - Updating Resources
@@ -2398,22 +2443,28 @@ ng g c member-edit --skip-tests
 
 ```ts
 export class MemberEditComponent implements OnInit {
-  member: Member;user: User;
+  member: Member;
+  user: User;
   constructor(
     private accountService: AccountService,
-    private memberService: MembersService) {
-  this.accountService.currentUser$.pipe(take(1)).subscribe(user => this.user = user);
+    private memberService: MembersService
+  ) {
+    this.accountService.currentUser$
+      .pipe(take(1))
+      .subscribe((user) => (this.user = user));
   }
   ngOnInit(): void {
     this.loadMember();
   }
   loadMember() {
-  this.memberService.getMember(this.user.username).subscribe(member => {
+    this.memberService.getMember(this.user.username).subscribe((member) => {
       this.member = member;
-    })}}
+    });
+  }
+}
 ```
 
-* Access in html
+- Access in html
 
 ```html
 <h1 *ngIf="member">{{ member.username }}</h1>
@@ -2438,8 +2489,11 @@ export class MemberEditComponent implements OnInit {
   </div>
   <div class="col-4">
     <div class="card">
-      <img src="{{ member.photoUrl || './assets/user.png' }}" alt="{{ member.knownAs }}"
-        class="card-img-top img-thumbnail" />
+      <img
+        src="{{ member.photoUrl || './assets/user.png' }}"
+        alt="{{ member.knownAs }}"
+        class="card-img-top img-thumbnail"
+      />
       <div class="card-body">
         <div>
           <strong>Location:</strong>
@@ -2469,18 +2523,44 @@ export class MemberEditComponent implements OnInit {
       <tab heading="About {{ member.knownAs }}">
         <form>
           <h4>Description</h4>
-          <textarea class="form-control" [(ngModel)]="member.introduction" name="introduction" rows="6"></textarea>
+          <textarea
+            class="form-control"
+            [(ngModel)]="member.introduction"
+            name="introduction"
+            rows="6"
+          ></textarea>
           <h4 class="mt-2">Looking for</h4>
-          <textarea class="form-control" [(ngModel)]="member.lookingFor" name="lookingFor" rows="6"></textarea>
+          <textarea
+            class="form-control"
+            [(ngModel)]="member.lookingFor"
+            name="lookingFor"
+            rows="6"
+          ></textarea>
           <h4 class="mt-2">Interests</h4>
-          <textarea class="form-control" [(ngModel)]="member.interests" name="interests" rows="6"></textarea>
+          <textarea
+            class="form-control"
+            [(ngModel)]="member.interests"
+            name="interests"
+            rows="6"
+          ></textarea>
           <h4 class="mt-2">Location Details:</h4>
           <div class="form-inline">
             <label for="city">City</label>
-            <input class="form-control" [(ngModel)]="member.city" type="text" name="city" class="form-control mx-2" />
+            <input
+              class="form-control"
+              [(ngModel)]="member.city"
+              type="text"
+              name="city"
+              class="form-control mx-2"
+            />
             <label for="country">Country</label>
-            <input class="form-control" [(ngModel)]="member.country" type="text" name="country"
-              class="form-control mx-2" />
+            <input
+              class="form-control"
+              [(ngModel)]="member.country"
+              type="text"
+              name="country"
+              class="form-control mx-2"
+            />
           </div>
         </form>
       </tab>
@@ -2492,13 +2572,13 @@ export class MemberEditComponent implements OnInit {
 </div>
 ```
 
-* Also copied css
+- Also copied css
 
 ### Adding the update functionality
 
 - Make the form an angular form by adding `#editForm="ngForm" (ngSubmit)="updateMember() to <form>`.
 - Hook the button to form by adding `form="editForm"` to button and `id="editForm"` to form.
-- Disable info when not made any changes with adding *`ngIf=`"editForm.dirty".
+- Disable info when not made any changes with adding \*`ngIf=`"editForm.dirty".
 - Get access to form from component `@ViewChild('editForm') editForm: NgForm;` to preserve data after an action.
 - Implement pseudo **updateMember** function.
 
@@ -2527,17 +2607,57 @@ canDeactivate(
     return true;}}
 ```
 
-* add guard to **app-routing.module.ts**
+- add guard to **app-routing.module.ts**
 
 ```ts
 { path: 'member/edit', component: MemberEditComponent, canDeactivate: [PreventUnsavedChangesGuard] },
 ```
 
-* To prevent users from going to another site or closing the tab add this to component, path `canDeactivate: [PreventUnsavedChangesGuard]` 
+- To prevent users from going to another site or closing the tab add this to component, path `canDeactivate: [PreventUnsavedChangesGuard]`
 
 ```ts
   @HostListener('window:beforeunload', ['$event']) unloadNotification($event: any) {
     if (this.editForm.dirty) {$event.returnValue=true;}}
 ```
 
- 
+### Persisting the changes in API (BE)
+
+- Create a **MemberUpdateDto** with only the props that we wanna show in update view.
+- Map in **AutoMapperProfiles** `CreateMap<MemberUpdateDto, AppUser>();`
+- Create Action on **UsersController**
+
+```cs
+        [HttpPut]
+        public async Task<ActionResult> UpdateUser(MemberUpdateDto memberUpdateDto)
+        {
+            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = await _userRepository.GetUserByUsernameAsync(username);
+
+            _mapper.Map(memberUpdateDto, user);
+
+            _userRepository.Update(user);
+
+            if (await _userRepository.SaveAllAsync()) return NoContent();
+
+            return BadRequest("Failed to update user");
+        }
+```
+
+### Updating user in the client app
+
+* Make request **updateMember** in **members.service**
+
+```ts
+updateMember(member: Member) { return this.http.put(this.baseUrl + 'users', member);}}
+```
+
+* Configure **updateMember** in **member-edit.component.ts**
+
+```ts
+  updateMember() {
+    this.memberService.updateMember(this.member).subscribe(()=>{
+      this.toastr.success('Profile updated')
+      this.editForm.reset(this.member);
+    })
+```
+
