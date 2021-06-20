@@ -2509,3 +2509,35 @@ export class MemberEditComponent implements OnInit {
     this.editForm.reset(this.member);
   }
 ```
+
+### Can Deactivate Route Guard
+
+```bash
+cd src/app/_guards
+ng g g prevent-unsaved-changes --skip-tests
+(*) Can Deactivate
+```
+
+- **prevent-unsaved-changes.guard.ts**
+
+```ts
+canDeactivate(
+    component: MemberEditComponent): boolean {
+    if (component.editForm.dirty) {return confirm('Are you sure you want to continue? Any unsaved changes will be lost!')}
+    return true;}}
+```
+
+* add guard to **app-routing.module.ts**
+
+```ts
+{ path: 'member/edit', component: MemberEditComponent, canDeactivate: [PreventUnsavedChangesGuard] },
+```
+
+* To prevent users from going to another site or closing the tab add this to component, path `canDeactivate: [PreventUnsavedChangesGuard]` 
+
+```ts
+  @HostListener('window:beforeunload', ['$event']) unloadNotification($event: any) {
+    if (this.editForm.dirty) {$event.returnValue=true;}}
+```
+
+ 
