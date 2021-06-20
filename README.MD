@@ -2496,5 +2496,16 @@ export class MemberEditComponent implements OnInit {
 
 ### Adding the update functionality
 
- 
+- Make the form an angular form by adding `#editForm="ngForm" (ngSubmit)="updateMember() to <form>`.
+- Hook the button to form by adding `form="editForm"` to button and `id="editForm"` to form.
+- Disable info when not made any changes with adding *`ngIf=`"editForm.dirty".
+- Get access to form from component `@ViewChild('editForm') editForm: NgForm;` to preserve data after an action.
+- Implement pseudo **updateMember** function.
 
+```ts
+  updateMember() {
+    console.log(this.member);
+    this.toastr.success('Profile updated')
+    this.editForm.reset(this.member);
+  }
+```
