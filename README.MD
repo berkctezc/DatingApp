@@ -2645,13 +2645,13 @@ canDeactivate(
 
 ### Updating user in the client app
 
-* Make request **updateMember** in **members.service**
+- Make request **updateMember** in **members.service**
 
 ```ts
 updateMember(member: Member) { return this.http.put(this.baseUrl + 'users', member);}}
 ```
 
-* Configure **updateMember** in **member-edit.component.ts**
+- Configure **updateMember** in **member-edit.component.ts**
 
 ```ts
   updateMember() {
@@ -2689,23 +2689,26 @@ ng g s busy --skip-tests
 ```ts
 export class BusyService {
   busyRequestCount = 0;
-  constructor(private spinnerService:NgxSpinnerService) { }
+  constructor(private spinnerService: NgxSpinnerService) {}
   busy() {
     this.busyRequestCount++;
     this.spinnerService.show(undefined, {
-      type: 'line-scale-party',
-      bdColor: 'rgba(255,255,255,0)',
-      color: '#333333'
-    });}
+      type: "line-scale-party",
+      bdColor: "rgba(255,255,255,0)",
+      color: "#333333",
+    });
+  }
   idle() {
     this.busyRequestCount--;
     if (this.busyRequestCount <= 0) {
       this.busyRequestCount = 0;
       this.spinnerService.hide();
-    }}}
+    }
+  }
+}
 ```
 
-* Create loading interceptor
+- Create loading interceptor
 
 ```bash
 ng g interceptor loading --skip-tests
@@ -2713,13 +2716,23 @@ ng g interceptor loading --skip-tests
 
 ```ts
 export class LoadingInterceptor implements HttpInterceptor {
-  constructor(private busyService: BusyService) { }
-  intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+  constructor(private busyService: BusyService) {}
+  intercept(
+    request: HttpRequest<unknown>,
+    next: HttpHandler
+  ): Observable<HttpEvent<unknown>> {
     this.busyService.busy();
-    return next.handle(request).pipe(delay(100),finalize(()=>{this.busyService.idle();}));}}
+    return next.handle(request).pipe(
+      delay(100),
+      finalize(() => {
+        this.busyService.idle();
+      })
+    );
+  }
+}
 ```
 
-- Add to **app.module.ts** providers   `{ provide: HTTP_INTERCEPTORS, useClass: LoadingInterceptor, multi: true },`
+- Add to **app.module.ts** providers `{ provide: HTTP_INTERCEPTORS, useClass: LoadingInterceptor, multi: true },`
 - Add to app.component.html
 
 ```html
@@ -2736,26 +2749,28 @@ export class LoadingInterceptor implements HttpInterceptor {
 export class MembersService {
   baseUrl = environment.apiUrl;
   members: Member[] = [];
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
   getMembers() {
     if (this.members.length > 0) return of(this.members);
-    return this.http.get<Member[]>(this.baseUrl + 'users').pipe(
-      map(members => {
+    return this.http.get<Member[]>(this.baseUrl + "users").pipe(
+      map((members) => {
         this.members = members;
         return members;
       })
     );
   }
   getMember(username: string) {
-    const member = this.members.find(x => x.username === username);
+    const member = this.members.find((x) => x.username === username);
     if (member !== undefined) return of(member);
-    return this.http.get<Member>(this.baseUrl + 'users/' + username);
+    return this.http.get<Member>(this.baseUrl + "users/" + username);
   }
   updateMember(member: Member) {
-    return this.http.put(this.baseUrl + 'users', member).pipe(map(() => {
-      const index = this.members.indexOf(member);
-      this.members[index] = member;
-    }))
+    return this.http.put(this.baseUrl + "users", member).pipe(
+      map(() => {
+        const index = this.members.indexOf(member);
+        this.members[index] = member;
+      })
+    );
   }
 }
 ```
@@ -2765,7 +2780,7 @@ export class MembersService {
 ```ts
 export class MemberListComponent implements OnInit {
   members$: Observable<Member[]>;
-  constructor(private memberService: MembersService) { }
+  constructor(private memberService: MembersService) {}
   ngOnInit(): void {
     this.members$ = this.memberService.getMembers();
   }
@@ -2782,3 +2797,33 @@ export class MemberListComponent implements OnInit {
 </div>
 ```
 
+## Photo Upload Functionality
+
+### Configuring cloudinary in the API
+
+- Install CloudinaryDotNet Nuget Package
+- Insert keys into appsettings.json
+
+```json
+  "CloudinarySettings": {
+    "CloudName": "aaaa",
+    "ApiKey": "1111",
+    "ApiSecret":"2222"
+  }
+```
+
+- Create CloudinarySettings in Helpers folder
+
+```cs
+namespace API.Helpers
+{
+    public class CloudinarySettings
+    {
+        public string CloudName { get; set; }
+        public string ApiKey { get; set; }
+        public string ApiSecret { get; set; }
+    }
+}
+```
+
+- Add to ApplicationServiceExtensions AddApplicationServices `services.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));`
