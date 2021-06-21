@@ -140,7 +140,7 @@ public void ConfigureServices(IServiceCollection services){
 INSERT INTO Users (Id, UserName) VALUES (1,"Bob");
 ```
 
-### Adding an API Controller
+### API Controller
 
 - in Controller folder create your controller like **UsersController.cs**
 - inherit it from ControllerBase and add **[ApiController]** and **[Route("api/[controller]")]** annotations
@@ -2660,4 +2660,64 @@ updateMember(member: Member) { return this.http.put(this.baseUrl + 'users', memb
       this.editForm.reset(this.member);
     })
 ```
+
+### Loading Indicators
+
+```bash
+npm install ngx-spinner
+```
+
+- Add to **shared.module.ts**
+
+```ts
+ imports: [
+// ...
+    NgxSpinnerModule
+  ],  exports: [
+//..
+    NgxSpinnerModule
+  ]
+```
+
+- Create busy service
+
+```bash
+cd src/app/_services
+ng g s busy --skip-tests
+```
+
+```ts
+export class BusyService {
+  busyRequestCount = 0;
+  constructor(private spinnerService:NgxSpinnerService) { }
+  busy() {
+    this.busyRequestCount++;
+    this.spinnerService.show(undefined, {
+      type: 'line-scale-party',
+      bdColor: 'rgba(255,255,255,0)',
+      color: '#333333'
+    });}
+  idle() {
+    this.busyRequestCount--;
+    if (this.busyRequestCount <= 0) {
+      this.busyRequestCount = 0;
+      this.spinnerService.hide();
+    }}}
+```
+
+* Create loading interceptor
+
+```bash
+ng g interceptor loading --skip-tests
+```
+
+```ts
+export class LoadingInterceptor implements HttpInterceptor {
+  constructor(private busyService: BusyService) { }
+  intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+    this.busyService.busy();
+    return next.handle(request).pipe(delay(100),finalize(()=>{this.busyService.idle();}));}}
+```
+
+- Add to **app.module.ts** providers   `{ provide: HTTP_INTERCEPTORS, useClass: LoadingInterceptor, multi: true },`
 

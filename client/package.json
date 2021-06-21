@@ -24,9 +24,10 @@
     "bootswatch": "^5.0.1",
     "font-awesome": "^4.7.0",
     "ngx-bootstrap": "^6.2.0",
+    "ngx-spinner": "^12.0.0",
     "ngx-toastr": "^14.0.0",
     "rxjs": "~6.6.0",
-    "tslib": "^2.1.0",
+    "tslib": "^2.3.0",
     "zone.js": "~0.11.4"
   },
   "devDependencies": {
