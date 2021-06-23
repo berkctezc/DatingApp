@@ -2937,3 +2937,19 @@ if (await _userRepository.SaveAllAsync())
 }
 ```
 
+### Adding a Photo Editor Component (FE)
+
+- Generate photo editor component
+
+```bash
+cd src/app
+ng g c photo-editor --skip-tests
+```
+
+- Get input from parent (member-edit) `@Input() member: Member;`
+- In **member-edit.component.html** (member is populated from earlier)
+
+```html
+ <app-photo-editor [member]="member"></app-photo-editor>
+```
+
