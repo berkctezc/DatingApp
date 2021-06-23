@@ -2910,13 +2910,30 @@ namespace API.Extensions
                 PublicId = result.PublicId
             };
             if (user.Photos.Count == 0) photo.IsMain = true;
-
             user.Photos.Add(photo);
-
             if (await _userRepository.SaveAllAsync())
                 return _mapper.Map<PhotoDto>(photo);
-
             return BadRequest("Problem adding photo");
         }
+```
+
+### Using the CreatedAtRoute method
+
+- Give GetUser action a name to access in other actions
+
+```cs
+[HttpGet("{username}", Name = "GetUser")]
+public async Task<ActionResult<MemberDto>> GetUser(string username){
+    //...
+}
+```
+
+- In AddPhoto action's save method return CreatedAtRoute
+
+```cs
+if (await _userRepository.SaveAllAsync())
+{
+    return CreatedAtRoute("GetUser", new { username = user.UserName }, _mapper.Map<PhotoDto>(photo));
+}
 ```
 
