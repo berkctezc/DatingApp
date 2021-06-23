@@ -2797,7 +2797,7 @@ export class MemberListComponent implements OnInit {
 </div>
 ```
 
-## Photo Upload Functionality
+## 10 - Photo Upload Functionality
 
 ### Configuring cloudinary in the API
 
@@ -2877,3 +2877,46 @@ public interface IPhotoService
 ```
 
 - Add to services `services.AddScoped<IPhotoService, PhotoService>();`
+
+### Updating the users controller
+
+- Cleanup on Getting user name. Moved function to a new extension name **ClaimsPrincipleExtensions**
+
+```cs
+namespace API.Extensions
+{
+    public static class ClaimsPrincipleExtensions
+    {
+        public static string GetUserName(this ClaimsPrincipal user)
+        {
+            return user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        }
+    }
+}
+```
+
+- **AddPhoto** Action in **UsersController**
+
+```cs
+ [HttpPost("add-photo")]
+        public async Task<ActionResult<PhotoDto>> AddPhoto(IFormFile file)
+        {
+            var user = await _userRepository.GetUserByUsernameAsync(User.GetUserName());
+            var result = await _photoService.AddPhotoAsync(file);
+            if (result.Error != null) return BadRequest(result.Error.Message);
+            var photo = new Photo
+            {
+                Url = result.SecureUrl.AbsoluteUri,
+                PublicId = result.PublicId
+            };
+            if (user.Photos.Count == 0) photo.IsMain = true;
+
+            user.Photos.Add(photo);
+
+            if (await _userRepository.SaveAllAsync())
+                return _mapper.Map<PhotoDto>(photo);
+
+            return BadRequest("Problem adding photo");
+        }
+```
+
