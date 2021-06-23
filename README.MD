@@ -3113,7 +3113,7 @@ input[type=file]{ color:transparent; }
         }
 ```
 
-### Adding the main photo to the navbar
+### Adding the main photo to the navbar (FE)
 
 - Add **PhotoUrl** field to **UserDto** in dotnet api and **user.ts** in angular client
 - In **AccountController's Login** method include photos table and set **PhotoUrl** when logging in
@@ -3129,6 +3129,46 @@ return new UserDto
 
 - tidied up **account.service.ts**
 - **nav.component.html** `<img src="{{ user.photoUrl }}" alt="{{ user.photoUrl }}" />`
+- **nav.component.css**
 
+```css
+img{
+    max-height: 40px;
+    border:2px solid #fff;
+    display:inline;
+    margin-right: 2em;
+}
+```
 
+### Setting the main photo in the client (FE)
+
+- Call put method of api in **members.service.ts**
+
+```ts
+  setMainPhoto(photoId: number) {
+    return this.http.put(this.baseUrl + 'users/set-main-photo/' + photoId, {})
+  }
+```
+
+- fill request in **photo-editor.component.ts**
+
+```ts
+  setMainPhoto(photo: Photo) {
+    this.memberService.setMainPhoto(photo.id).subscribe(() => {
+      this.user.photoUrl = photo.url;
+      this.accountService.setCurrentUser(this.user);
+      this.member.photoUrl = photo.url;
+      this.member.photos.forEach(p => {
+        if (p.isMain) p.isMain = false;
+        if (p.id === photo.id) p.isMain = true;
+      })
+    })
+  }
+```
+
+* Update the template
+
+```html
+      <button [disabled]="photo.isMain" (click)="setMainPhoto(photo)" [ngClass]="photo.isMain ? 'btn-success active' : 'btn-outline-success'" class="btn btn-sm"> Main </button>
+```
 
