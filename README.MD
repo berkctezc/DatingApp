@@ -2799,9 +2799,9 @@ export class MemberListComponent implements OnInit {
 
 ## 10 - Photo Upload Functionality
 
-### Configuring cloudinary in the API
+### Configuring Cloudinary in the API (BE)
 
-- Install CloudinaryDotNet Nuget Package
+- Install CloudinaryDotNet NuGet Package
 - Insert keys into appsettings.json
 
 ```json
@@ -2878,7 +2878,7 @@ public interface IPhotoService
 
 - Add to services `services.AddScoped<IPhotoService, PhotoService>();`
 
-### Updating the users controller
+### Updating the users controller (BE)
 
 - Cleanup on Getting user name. Moved function to a new extension name **ClaimsPrincipleExtensions**
 
@@ -2917,7 +2917,7 @@ namespace API.Extensions
         }
 ```
 
-### Using the CreatedAtRoute method
+### Using the CreatedAtRoute method (BE)
 
 - Give GetUser action a name to access in other actions
 
@@ -2951,5 +2951,143 @@ ng g c photo-editor --skip-tests
 
 ```html
  <app-photo-editor [member]="member"></app-photo-editor>
+```
+
+### Photo Uploader (FE)
+
+- Install **ng2-file-upload** package
+
+```bash
+npm install ng2-file-upload
+```
+
+- Add to **shared.module.ts**
+
+```ts
+  imports: [
+//..
+    FileUploadModule
+  ],
+  exports: [
+//..
+    FileUploadModule
+  ]
+```
+
+
+
+- Add file upload functionality to **photo-editor-component.ts**
+
+```ts
+export class PhotoEditorComponent implements OnInit {
+  @Input() member: Member;
+  uploader: FileUploader;
+  hasBaseDropZoneOver = false;
+  baseUrl = environment.apiUrl;
+  user: User;
+
+  constructor(private accountService: AccountService) {
+    this.accountService.currentUser$.pipe(take(1)).subscribe(user => this.user = user);
+  }
+
+  ngOnInit(): void {
+    this.initializeUploader();
+  }
+
+  fileOverBase(e: any) {
+    this.hasBaseDropZoneOver = e;
+  }
+
+  initializeUploader() {
+    this.uploader = new FileUploader({
+      url: this.baseUrl + 'users/add-photo',
+      authToken: 'Bearer' + this.user.token,
+      isHTML5: true,
+      allowedFileType: ['image'],
+      removeAfterUpload: true,
+      autoUpload: true,
+      maxFileSize: 10 * 1024 * 1024
+    });
+
+    this.uploader.onAfterAddingFile = (file) => {
+      file.withCredentials = false;
+    }
+
+    this.uploader.onSuccessItem = (item, response, status, headers) => {
+      if (response) {
+        const photo = JSON.parse(response);
+        this.member.photos.push(photo);
+      }
+    }
+  }
+}
+```
+
+- In template
+
+```html
+<div class="row mt-3">
+  <div class="col-md-3">
+    <h3>Add Photos</h3>
+
+    <div ng2FileDrop [ngClass]="{ 'nv-file-over': hasBaseDropZoneOver }" (fileOver)="fileOverBase($event)" [uploader]="uploader" class="card bg-faded p-3 text-center mb-3 my-drop-zone">
+      <i class="fa fa-upload fa-3x"></i>
+      Drop photos here
+    </div>
+    Multiple
+    <input type="file" ng2FileSelect [uploader]="uploader" multiple /><br />
+    Single
+    <input type="file" ng2FileSelect [uploader]="uploader" />
+  </div>
+  <div class="col-md-9" style="margin-bottom: 40px" *ngIf="uploader?.queue?.length">
+    <h3>Upload queue</h3>
+    <p>Queue length: {{ uploader?.queue?.length }}</p>
+    <table class="table">
+      <thead>
+        <tr>
+          <th width="50%">Name</th>
+          <th>Size</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of uploader.queue">
+          <td>
+            <strong>{{ item?.file?.name }}</strong>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div>
+      <div>
+        Queue progress:
+        <div class="progress" style="">
+          <div class="progress-bar"  role="progressbar" [ngStyle]="{ width: uploader.progress + '%' }"
+          ></div>
+        </div>
+      </div>
+      <button type="button" class="btn btn-success btn-s" (click)="uploader.uploadAll()"[disabled]="!uploader.getNotUploadedItems().length">
+        <span class="fa fa-upload"></span> Upload all
+      </button>
+      <button type="button" class="btn btn-warning btn-s" (click)="uploader.cancelAll()" [disabled]="!uploader.isUploading">
+        <span class="fa fa-ban"></span> Cancel all
+      </button>
+      <button type="button" class="btn btn-danger btn-s" (click)="uploader.clearQueue()" [disabled]="!uploader.queue.length">
+        <span class="fa fa-trash"></span> Remove all
+      </button>
+    </div>
+  </div>
+</div>
+```
+
+- and a bit styling in css
+
+```css
+img.img-thumbnail{
+    height:100px;
+    min-width: 100px !important;
+    margin-bottom: 2px;
+}
+.nv-file-over{ border:dotted 3px red; }
+input[type=file]{ color:transparent; }
 ```
 
