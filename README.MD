@@ -2974,8 +2974,6 @@ npm install ng2-file-upload
   ]
 ```
 
-
-
 - Add file upload functionality to **photo-editor-component.ts**
 
 ```ts
@@ -3090,4 +3088,47 @@ img.img-thumbnail{
 .nv-file-over{ border:dotted 3px red; }
 input[type=file]{ color:transparent; }
 ```
+
+### Setting the main photo in the API (BE)
+
+- **UsersController.cs**
+
+```ts
+        [HttpPut("set-main-photo/{photoId}")]
+        public async Task<ActionResult> SetMainPhoto(int photoId)
+        {
+            var user = await _userRepository.GetUserByUsernameAsync(User.GetUserName());
+
+            var photo = user.Photos.FirstOrDefault(x => x.Id == photoId);
+
+            if (photo.IsMain) return BadRequest("This is already your main photo");
+
+            var currentMain = user.Photos.FirstOrDefault(x => x.IsMain);
+            if (currentMain != null) currentMain.IsMain = false;
+            photo.IsMain = true;
+
+            if (await _userRepository.SaveAllAsync()) return NoContent();
+
+            return BadRequest("Failed to set main photo");
+        }
+```
+
+### Adding the main photo to the navbar
+
+- Add **PhotoUrl** field to **UserDto** in dotnet api and **user.ts** in angular client
+- In **AccountController's Login** method include photos table and set **PhotoUrl** when logging in
+
+```cs
+var user = await _context.Users
+    .Include(p => p.Photos)
+    .SingleOrDefaultAsync(x => x.UserName == loginDto.Username);
+//..            
+return new UserDto
+{Username=user.UserName,Token =_tokenService.CreateToken(user),PhotoUrl=user.Photos.FirstOrDefault(x => x.IsMain)?.Url};
+```
+
+- tidied up **account.service.ts**
+- **nav.component.html** `<img src="{{ user.photoUrl }}" alt="{{ user.photoUrl }}" />`
+
+
 
