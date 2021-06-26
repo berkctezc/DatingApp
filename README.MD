@@ -2950,7 +2950,7 @@ ng g c photo-editor --skip-tests
 - In **member-edit.component.html** (member is populated from earlier)
 
 ```html
- <app-photo-editor [member]="member"></app-photo-editor>
+<app-photo-editor [member]="member"></app-photo-editor>
 ```
 
 ### Photo Uploader (FE)
@@ -2985,7 +2985,9 @@ export class PhotoEditorComponent implements OnInit {
   user: User;
 
   constructor(private accountService: AccountService) {
-    this.accountService.currentUser$.pipe(take(1)).subscribe(user => this.user = user);
+    this.accountService.currentUser$
+      .pipe(take(1))
+      .subscribe((user) => (this.user = user));
   }
 
   ngOnInit(): void {
@@ -2998,25 +3000,25 @@ export class PhotoEditorComponent implements OnInit {
 
   initializeUploader() {
     this.uploader = new FileUploader({
-      url: this.baseUrl + 'users/add-photo',
-      authToken: 'Bearer' + this.user.token,
+      url: this.baseUrl + "users/add-photo",
+      authToken: "Bearer" + this.user.token,
       isHTML5: true,
-      allowedFileType: ['image'],
+      allowedFileType: ["image"],
       removeAfterUpload: true,
       autoUpload: true,
-      maxFileSize: 10 * 1024 * 1024
+      maxFileSize: 10 * 1024 * 1024,
     });
 
     this.uploader.onAfterAddingFile = (file) => {
       file.withCredentials = false;
-    }
+    };
 
     this.uploader.onSuccessItem = (item, response, status, headers) => {
       if (response) {
         const photo = JSON.parse(response);
         this.member.photos.push(photo);
       }
-    }
+    };
   }
 }
 ```
@@ -3028,7 +3030,13 @@ export class PhotoEditorComponent implements OnInit {
   <div class="col-md-3">
     <h3>Add Photos</h3>
 
-    <div ng2FileDrop [ngClass]="{ 'nv-file-over': hasBaseDropZoneOver }" (fileOver)="fileOverBase($event)" [uploader]="uploader" class="card bg-faded p-3 text-center mb-3 my-drop-zone">
+    <div
+      ng2FileDrop
+      [ngClass]="{ 'nv-file-over': hasBaseDropZoneOver }"
+      (fileOver)="fileOverBase($event)"
+      [uploader]="uploader"
+      class="card bg-faded p-3 text-center mb-3 my-drop-zone"
+    >
       <i class="fa fa-upload fa-3x"></i>
       Drop photos here
     </div>
@@ -3037,7 +3045,11 @@ export class PhotoEditorComponent implements OnInit {
     Single
     <input type="file" ng2FileSelect [uploader]="uploader" />
   </div>
-  <div class="col-md-9" style="margin-bottom: 40px" *ngIf="uploader?.queue?.length">
+  <div
+    class="col-md-9"
+    style="margin-bottom: 40px"
+    *ngIf="uploader?.queue?.length"
+  >
     <h3>Upload queue</h3>
     <p>Queue length: {{ uploader?.queue?.length }}</p>
     <table class="table">
@@ -3059,17 +3071,35 @@ export class PhotoEditorComponent implements OnInit {
       <div>
         Queue progress:
         <div class="progress" style="">
-          <div class="progress-bar"  role="progressbar" [ngStyle]="{ width: uploader.progress + '%' }"
+          <div
+            class="progress-bar"
+            role="progressbar"
+            [ngStyle]="{ width: uploader.progress + '%' }"
           ></div>
         </div>
       </div>
-      <button type="button" class="btn btn-success btn-s" (click)="uploader.uploadAll()"[disabled]="!uploader.getNotUploadedItems().length">
+      <button
+        type="button"
+        class="btn btn-success btn-s"
+        (click)="uploader.uploadAll()"
+        [disabled]="!uploader.getNotUploadedItems().length"
+      >
         <span class="fa fa-upload"></span> Upload all
       </button>
-      <button type="button" class="btn btn-warning btn-s" (click)="uploader.cancelAll()" [disabled]="!uploader.isUploading">
+      <button
+        type="button"
+        class="btn btn-warning btn-s"
+        (click)="uploader.cancelAll()"
+        [disabled]="!uploader.isUploading"
+      >
         <span class="fa fa-ban"></span> Cancel all
       </button>
-      <button type="button" class="btn btn-danger btn-s" (click)="uploader.clearQueue()" [disabled]="!uploader.queue.length">
+      <button
+        type="button"
+        class="btn btn-danger btn-s"
+        (click)="uploader.clearQueue()"
+        [disabled]="!uploader.queue.length"
+      >
         <span class="fa fa-trash"></span> Remove all
       </button>
     </div>
@@ -3080,13 +3110,17 @@ export class PhotoEditorComponent implements OnInit {
 - and a bit styling in css
 
 ```css
-img.img-thumbnail{
-    height:100px;
-    min-width: 100px !important;
-    margin-bottom: 2px;
+img.img-thumbnail {
+  height: 100px;
+  min-width: 100px !important;
+  margin-bottom: 2px;
 }
-.nv-file-over{ border:dotted 3px red; }
-input[type=file]{ color:transparent; }
+.nv-file-over {
+  border: dotted 3px red;
+}
+input[type="file"] {
+  color: transparent;
+}
 ```
 
 ### Setting the main photo in the API (BE)
@@ -3122,7 +3156,7 @@ input[type=file]{ color:transparent; }
 var user = await _context.Users
     .Include(p => p.Photos)
     .SingleOrDefaultAsync(x => x.UserName == loginDto.Username);
-//..            
+//..
 return new UserDto
 {Username=user.UserName,Token =_tokenService.CreateToken(user),PhotoUrl=user.Photos.FirstOrDefault(x => x.IsMain)?.Url};
 ```
@@ -3132,11 +3166,11 @@ return new UserDto
 - **nav.component.css**
 
 ```css
-img{
-    max-height: 40px;
-    border:2px solid #fff;
-    display:inline;
-    margin-right: 2em;
+img {
+  max-height: 40px;
+  border: 2px solid #fff;
+  display: inline;
+  margin-right: 2em;
 }
 ```
 
@@ -3166,10 +3200,17 @@ img{
   }
 ```
 
-* Update the template
+- Update the template
 
 ```html
-      <button [disabled]="photo.isMain" (click)="setMainPhoto(photo)" [ngClass]="photo.isMain ? 'btn-success active' : 'btn-outline-success'" class="btn btn-sm"> Main </button>
+<button
+  [disabled]="photo.isMain"
+  (click)="setMainPhoto(photo)"
+  [ngClass]="photo.isMain ? 'btn-success active' : 'btn-outline-success'"
+  class="btn btn-sm"
+>
+  Main
+</button>
 ```
 
 ### Deleting Photos API (BE+FE)
@@ -3195,7 +3236,7 @@ img{
         }
 ```
 
-* In Angular **members.service.ts**
+- In Angular **members.service.ts**
 
 ```ts
   deletePhoto(photoId: number) {
@@ -3216,8 +3257,75 @@ img{
 - In template add disabled and click to delete button
 
 ```html
-      <button [disabled]="photo.isMain" (click)="deletePhoto(photo.id)" class="btn btn-sm btn-danger">
-        <i class="fa fa-trash"></i>
-      </button>
+<button
+  [disabled]="photo.isMain"
+  (click)="deletePhoto(photo.id)"
+  class="btn btn-sm btn-danger"
+>
+  <i class="fa fa-trash"></i>
+</button>
 ```
 
+## Reactive Forms
+
+- Import ReactiveForms in **app.module.ts**
+- Setup reactive form in **register.component.ts**
+
+```ts
+export class RegisterComponent implements OnInit {
+ //..
+  registerForm: FormGroup;
+//..
+  ngOnInit(): void {
+    this.initializeForm();
+  }
+  initializeForm() {
+    this.registerForm = new FormGroup({
+      username: new FormControl(),
+      password: new FormControl(),
+      confirmPassword: new FormControl()
+    })
+  }
+```
+
+- In View remove template reference variables, ng models and name fields. Add formGroup and formControlNames
+
+```html
+<form [formGroup]="registerForm" (ngSubmit)="register()" autocomplete="off">
+  <h2 class="text-center text-primary">Sign up</h2>
+  <hr />
+  <div class="form-group">
+    <input
+      type="text"
+      class="form-control"
+      formControlName="username"
+      placeholder="Username"
+    />
+  </div>
+  <div class="form-group">
+    <input
+      type="password"
+      class="form-control"
+      formControlName="password"
+      placeholder="Password"
+    />
+  </div>
+  <div class="form-group">
+    <input
+      type="password"
+      class="form-control"
+      formControlName="confirmPassword"
+      placeholder="Password again"
+    />
+  </div>
+  <div class="form-group text-center">
+    <button class="btn btn-success mr-2" type="submit">Register</button>
+    <button class="btn btn-default mr-2" (click)="cancel()" type="button">
+      Cancel
+    </button>
+  </div>
+</form>
+
+<p>Form value: {{ registerForm.value | json }}</p>
+<p>Form value: {{ registerForm.status | json }}</p>
+```
