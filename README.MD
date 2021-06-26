@@ -3329,3 +3329,37 @@ export class RegisterComponent implements OnInit {
 <p>Form value: {{ registerForm.value | json }}</p>
 <p>Form value: {{ registerForm.status | json }}</p>
 ```
+
+### Client side validation
+
+- Validators
+
+```ts
+   initializeForm() {
+    this.registerForm = new FormGroup({
+      username: new FormControl('Username', Validators.required),
+      password: new FormControl('', [Validators.required, Validators.minLength(4), Validators.maxLength(8)]),
+      confirmPassword: new FormControl('', Validators.required)
+    })
+  }
+```
+
+### Custom validators
+
+- A Validator for pass and pass confirm matching
+
+```ts
+  initializeForm() {
+//..
+      confirmPassword: new FormControl('', [Validators.required, this.matchValues('password')])
+    });
+  }
+
+  matchValues(matchTo: string): ValidatorFn {
+    return (control: AbstractControl) => {
+      return control?.value === control?.parent?.controls[matchTo].value ? null : { isMatching: true }
+    }
+  }
+```
+
+### Validation Feedback
