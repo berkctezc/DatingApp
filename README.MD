@@ -3350,7 +3350,10 @@ export class RegisterComponent implements OnInit {
 
 ```ts
   initializeForm() {
-//..
+    this.registerForm = new FormGroup({
+      username: new FormControl('Username', Validators.required),
+      password: new FormControl('', [Validators.required, Validators.minLength(4), Validators.maxLength(8)]),
+      //confirmpass, custom validator
       confirmPassword: new FormControl('', [Validators.required, this.matchValues('password')])
     });
   }
@@ -3363,3 +3366,113 @@ export class RegisterComponent implements OnInit {
 ```
 
 ### Validation Feedback
+
+- In html files use it like this and add messages with div
+
+```html
+<input />
+<input
+  [class.is-invalid]="registerForm.get('username').errors && registerForm.get('username').touched"
+  type="text"
+  class="form-control"
+  formControlName="username"
+  placeholder="Username"
+/>
+<div class="invalid-feedback">Please enter a username</div>
+<!-- -->
+<input
+  [class.is-invalid]="registerForm.get('password').errors && registerForm.get('password').touched"
+  type="password"
+  class="form-control"
+  formControlName="password"
+  placeholder="Password"
+/>
+<div
+  *ngIf="registerForm.get('password').hasError('required')"
+  class="invalid-feedback"
+>
+  Please enter a password
+</div>
+<div
+  *ngIf="registerForm.get('password').hasError('minlength')"
+  class="invalid-feedback"
+>
+  Password must be at least 4 characters
+</div>
+<div
+  *ngIf="registerForm.get('password').hasError('maxlength')"
+  class="invalid-feedback"
+>
+  Password must be at most 8 characters
+</div>
+<!-- -->
+<input
+  [class.is-invalid]=" registerForm.get('confirmPassword').errors && registerForm.get('confirmPassword').touched"
+  type="password"
+  class="form-control"
+  formControlName="confirmPassword"
+  placeholder="Password again"
+/>
+<div
+  *ngIf="registerForm.get('confirmPassword').hasError('required')"
+  class="invalid-feedback"
+>
+  Please enter a confirm password
+</div>
+<div
+  *ngIf="registerForm.get('confirmPassword').hasError('isMatching')"
+  class="invalid-feedback"
+>
+  Passwords must match
+</div>
+```
+
+### Creating a reusable text input
+
+- Created a **\_forms** folder and generate a component named **text-input** `ng g c text-input --skip-tests`
+- Implent ControlValueAccessor in text-input.component instead of OnInit
+- Empty not implemented exceptions and add input, inject control
+
+```ts
+export class TextInputComponent implements ControlValueAccessor {
+  @Input() label: string;
+  @Input() type = "text";
+  constructor(@Self() public ngControl: NgControl) {
+    this.ngControl.valueAccessor = this;
+  }
+  writeValue(obj: any): void {}
+  registerOnChange(fn: any): void {}
+  registerOnTouched(fn: any): void {}
+}
+```
+
+- In html use it like this
+
+```html
+<div class="form-group">
+  <input
+    [class.is-invalid]="ngControl.touched && ngControl.invalid"
+    type="{{ type }}"
+    class="form-control"
+    [formControl]="ngControl.control"
+    placeholder="{{ label }}"
+  />
+  <div *ngIf="ngControl.control.errors?.required" class="invalid-feedback">
+    Please enter a {{ label }}
+  </div>
+  <div *ngIf="ngControl.control.errors?.minlength" class="invalid-feedback">
+    {{ label }} must be at least {{
+    ngControl.control.errors.minlength["requiredLength"] }}
+  </div>
+  <div *ngIf="ngControl.control.errors?.maxlength" class="invalid-feedback">
+    {{ label }} must be at most {{
+    ngControl.control.errors.maxlength["requiredLength"] }}
+  </div>
+  <div *ngIf="ngControl.control.errors?.isMatching" class="invalid-feedback">
+    Passwords do not match
+  </div>
+</div>
+```
+
+- Now that we made a template for all of the input we could use it at our register component
+-
