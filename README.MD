@@ -3475,4 +3475,48 @@ export class TextInputComponent implements ControlValueAccessor {
 ```
 
 - Now that we made a template for all of the input we could use it at our register component
--
+
+```html
+<form [formGroup]="registerForm" (ngSubmit)="register()" autocomplete="off">
+  <h2 class="text-center text-primary">Sign up</h2>
+  <hr />
+  <app-text-input
+    [formControl]="registerForm.controls['username']"
+    [label]="'Username'"
+  >
+  </app-text-input>
+  <app-text-input
+    [formControl]="registerForm.controls['password']"
+    [label]="'Password'"
+    [type]='"password"'
+  >
+  </app-text-input>
+  <app-text-input
+    [formControl]="registerForm.controls['confirmPassword']"
+    [label]="'Confirm Password'"
+    [type]='"password"'
+  >
+  </app-text-input>
+  <div class="form-group text-center">
+    <button class="btn btn-success mr-2" type="submit">Register</button>
+    <button class="btn btn-default mr-2" (click)="cancel()" type="button">
+      Cancel
+    </button>
+  </div>
+</form>
+```
+
+### Using the form builder service
+
+- Inject FormBuilder in register.component.ts. Swap new form group with array brackets
+
+```ts
+  constructor(  //...
+      private fb: FormBuilder) { }
+    //..
+  initializeForm() {this.registerForm = this.fb.group({
+      username: ['', Validators.required],
+      password: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(8)]],
+      confirmPassword: ['', [Validators.required, this.matchValues('password')]]
+    });}
+```
