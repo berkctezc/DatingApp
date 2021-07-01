@@ -31,7 +31,7 @@
 
     <div
       ng2FileDrop
-      [ngClass]="{ 'nv-file-over': hasBaseDropZoneOver }"
+      [ngClass]="{ 'nv-file-over': hasBaseDropzoneOver }"
       (fileOver)="fileOverBase($event)"
       [uploader]="uploader"
       class="card bg-faded p-3 text-center mb-3 my-drop-zone"
@@ -66,6 +66,9 @@
         <tr *ngFor="let item of uploader.queue">
           <td>
             <strong>{{ item?.file?.name }}</strong>
+          </td>
+          <td *ngIf="uploader.options.isHTML5" nowrap>
+            {{ item?.file?.size / 1024 / 1024 | number: ".2" }} MB
           </td>
         </tr>
       </tbody>

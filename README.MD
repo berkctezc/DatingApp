@@ -3715,6 +3715,81 @@ public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
 
 ### Client side registration
 
+- In register component, update register method
+
+```ts
+export class RegisterComponent implements OnInit {
+    //...
+    validationErrors: string[] = [];
+
+    constructor(
+    //...
+    private router: Router) { }
+    //...
+    register() {
+        this.accountService.register(this.registerForm.value).subscribe(response => {
+            this.router.navigateByUrl('/members');
+        }, error => {
+            this.validationErrors = error;
+        })
+    }
+```
+
+- Add if data is valid condition to register form template also get validations from api
+
+```html
+<form
+  [formGroup]="registerForm"
+  (ngSubmit)="registerForm.valid && register()"
+  autocomplete="off"
+>
+<!-FORM FIELDS HERE-->
+  <div class="row" *ngIf="validationErrors.length > 0">
+    <ul class="text-danger">
+      <li *ngFor="let error of validationErrors">
+        {{ error }}
+      </li>
+    </ul>
+  </div>
+
+  <div class="form-group text-center">
+    <button
+      [disabled]="!registerForm.valid"
+      class="btn btn-success mr-2"
+      type="submit"
+    >
+      Register
+    </button>
+    <button class="btn btn-default mr-2" (click)="cancel()" type="button">
+      Cancel
+    </button>
+  </div>
+</form>
+```
+
+- Some enhancements like update navbar photo when user uploads new photo **nav.component.html**
+
+```html
+  <img src="{{ user.photoUrl || './assets/user.png' }}"
+        alt="{{ user.photoUrl }}"/>
+```
+
+- Set new main in everywhere. In **photo-editor.component**
+
+```ts
+    this.uploader.onSuccessItem = (item, response, status, headers) => {
+      if (response) {
+        const photo: Photo = JSON.parse(response);
+        this.member.photos.push(photo);
+        if (photo.isMain) {
+          this.user.photoUrl = photo.url;
+          this.member.photoUrl = photo.url;
+          this.accountService.setCurrentUser(this.user);
+        }}}}
+```
+
+
+
 ## 12 - Paging, Sorting, Filtering
 
 ## 13 - Like user Function
