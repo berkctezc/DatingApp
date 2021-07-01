@@ -3552,23 +3552,16 @@ export class TextInputComponent implements ControlValueAccessor {
       <input type="radio" value='male' formControlName='gender'>Male
     </label>
     <label class="radio-inline">
-      <input type="radio" value='female' formControlName='gender'>
+      <input type="radio" value='female' formControlName='gender'>Female
     </label>
   </div>
   <app-text-input [formControl]="registerForm.controls['username']" [label]="'Username'">
-  </app-text-input>
-  <app-text-input [formControl]="registerForm.controls['knownAs']" [label]="'knownAs'">
-  </app-text-input>
-  <app-text-input [formControl]="registerForm.controls['dateOfBirth']" [label]="'dateOfBirth'">
-  </app-text-input>
-  <app-text-input [formControl]="registerForm.controls['city']" [label]="'city'">
-  </app-text-input>
-  <app-text-input [formControl]="registerForm.controls['country']" [label]="'country'">
-  </app-text-input>
-  <app-text-input [formControl]="registerForm.controls['password']" [label]="'Password'" [type]='"password"'>
-  </app-text-input>
-  <app-text-input [formControl]="registerForm.controls['confirmPassword']" [label]="'Confirm Password'"
-    [type]='"password"'>
+  </app-text-input><app-text-input [formControl]="registerForm.controls['knownAs']" [label]="'knownAs'">
+  </app-text-input><app-text-input [formControl]="registerForm.controls['dateOfBirth']" [label]="'dateOfBirth'">
+  </app-text-input><app-text-input [formControl]="registerForm.controls['city']" [label]="'city'">
+  </app-text-input><app-text-input [formControl]="registerForm.controls['country']" [label]="'country'">
+  </app-text-input>  <app-text-input [formControl]="registerForm.controls['password']" [label]="'Password'" [type]='"password"'>
+  </app-text-input><app-text-input [formControl]="registerForm.controls['confirmPassword']" [label]="'Confirm Password'" [type]='"password"'>
   </app-text-input>
   <div class="form-group text-center">
     <button class="btn btn-success mr-2" type="submit">Register</button>
@@ -3580,6 +3573,96 @@ export class TextInputComponent implements ControlValueAccessor {
 ```
 
 ### Adding Reusable date input
+
+- Add datepicker modlue in shared.module.ts
+
+```ts
+import { BsDatepickerModule } from 'ngx-bootstrap/datepicker';
+//...
+@NgModule({
+  declarations: [],
+  imports: [
+//...
+    BsDatepickerModule.forRoot()
+  ],
+  exports: [
+//...
+    BsDatepickerModule
+  ]
+})
+```
+
+- Create dateInput form for reusability
+
+```bash
+cd src/app/_forms
+ng g c text-input --skip-tests
+```
+
+- Date Input Component
+
+```ts
+export class DateInputComponent implements ControlValueAccessor {
+  @Input() label: string;
+  @Input() maxDate: Date;
+  bsConfig: Partial<BsDatepickerConfig>;
+
+  constructor(public ngControl: NgControl) {
+    this.ngControl.valueAccessor = this;
+    this.bsConfig = {
+      containerClass: 'theme-red',
+      dateInputFormat: 'DD MMMM YYYY'
+    }
+  }
+  writeValue(obj: any): void {}
+  registerOnChange(fn: any): void {}
+  registerOnTouched(fn: any): void {}
+}
+```
+
+- Date Input Template
+
+```html
+<div class="form-group">
+  <input
+    type="text"
+    class="form-control"
+    [class.is-invalid]="ngControl.touched && ngControl.invalid"
+    [formControl]="ngControl.control"
+    placeholder="{{ label }}"
+    bsDatepicker
+    [bsConfig]="bsConfig"
+    [maxDate]="maxDate"
+  />
+  <div *ngIf="ngControl.control.errors?.required" class="invalid-feedback">
+    {{ label }} is required
+  </div>
+</div>
+```
+
+- In main register template change **app-text-input** to **app-date-input**
+- For constraints (ex: age restrictions) go to **register-component.ts**
+
+```ts
+  maxDate: Date;
+  //...
+  ngOnInit(): void {
+    this.initializeForm();
+    this.maxDate = new Date();
+    this.maxDate.setFullYear(this.maxDate.getFullYear() - 18);
+  }
+```
+
+- Pass date to template (**register.component.html**)
+
+```html
+  <app-date-input
+    [formControl]="registerForm.controls['dateOfBirth']"
+    [label]="'dateOfBirth'"
+    [maxDate]="maxDate"
+  >
+  </app-date-input>
+```
 
 
 

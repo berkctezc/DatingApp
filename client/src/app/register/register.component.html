@@ -2,28 +2,51 @@
   <h2 class="text-center text-primary">Sign up</h2>
   <hr />
   <div class="form-group">
-    <label class="control-label" style="margin-right:10px;">I am a:</label>
+    <label class="control-label" style="margin-right: 10px">I am a:</label>
     <label class="radio-inline">
-      <input type="radio" value='male' formControlName='gender'>Male
+      <input type="radio" value="male" formControlName="gender" />Male
     </label>
     <label class="radio-inline">
-      <input type="radio" value='female' formControlName='gender'>
+      <input type="radio" value="female" formControlName="gender" />Female
     </label>
   </div>
-  <app-text-input [formControl]="registerForm.controls['username']" [label]="'Username'">
+  <app-text-input
+    [formControl]="registerForm.controls['username']"
+    [label]="'Username'"
+  >
   </app-text-input>
-  <app-text-input [formControl]="registerForm.controls['knownAs']" [label]="'knownAs'">
+  <app-text-input
+    [formControl]="registerForm.controls['knownAs']"
+    [label]="'knownAs'"
+  >
   </app-text-input>
-  <app-text-input [formControl]="registerForm.controls['dateOfBirth']" [label]="'dateOfBirth'">
+  <app-date-input
+    [formControl]="registerForm.controls['dateOfBirth']"
+    [label]="'dateOfBirth'"
+    [maxDate]="maxDate"
+  >
+  </app-date-input>
+  <app-text-input
+    [formControl]="registerForm.controls['city']"
+    [label]="'city'"
+  >
   </app-text-input>
-  <app-text-input [formControl]="registerForm.controls['city']" [label]="'city'">
+  <app-text-input
+    [formControl]="registerForm.controls['country']"
+    [label]="'country'"
+  >
   </app-text-input>
-  <app-text-input [formControl]="registerForm.controls['country']" [label]="'country'">
+  <app-text-input
+    [formControl]="registerForm.controls['password']"
+    [label]="'Password'"
+    [type]="'password'"
+  >
   </app-text-input>
-  <app-text-input [formControl]="registerForm.controls['password']" [label]="'Password'" [type]='"password"'>
-  </app-text-input>
-  <app-text-input [formControl]="registerForm.controls['confirmPassword']" [label]="'Confirm Password'"
-    [type]='"password"'>
+  <app-text-input
+    [formControl]="registerForm.controls['confirmPassword']"
+    [label]="'Confirm Password'"
+    [type]="'password'"
+  >
   </app-text-input>
   <div class="form-group text-center">
     <button class="btn btn-success mr-2" type="submit">Register</button>
