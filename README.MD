@@ -3823,6 +3823,66 @@ namespace API.Helpers
 
 ### Adding helper classes for pagination
 
+- **PaginationHeader.cs** Helper method
+
+```cs
+namespace API.Helpers
+{
+    public class PaginationHeader
+    {
+        public PaginationHeader(int currentPage, int itemsPerPage, int totalItems, int totalPages)
+        {
+            CurrentPage = currentPage;
+            ItemsPerPage = itemsPerPage;
+            TotalItems = totalItems;
+            TotalPages = totalPages;
+        }
+
+        public int CurrentPage { get; set; }
+        public int ItemsPerPage { get; set; }
+        public int TotalItems { get; set; }
+        public int TotalPages { get; set; }
+    }
+}
+```
+
+- **HttpExtensions.cs** Extension method
+
+```cs
+namespace API.Extensions
+{
+    public static class HttpExtensions
+    {
+        public static void AddPaginationHeader(this HttpResponse response, int currentPage, int itemsPerPage, int totalItems, int totalPages)
+        {
+            var paginationHeader = new PaginationHeader(currentPage, itemsPerPage, totalItems, totalPages);
+            response.Headers.Add("Pagination", JsonSerializer.Serialize(paginationHeader));
+            response.Headers.Add("Access-Control-Expose-Headers", "Pagination");
+        }
+    }
+}
+```
+
+- **UserParams.cs** Helper method
+
+```cs
+namespace API.Helpers
+{
+    public class UserParams
+    {
+        private const int MaxPageSize = 50;
+        public int PageNumber { get; set; } = 1;
+        public int _pageSize { get; set; } = 10;
+
+        public int PageSize
+        {
+            get => _pageSize;
+            set => _pageSize = (value > MaxPageSize) ? MaxPageSize : value;
+        }
+    }
+}
+```
+
 
 
 ## 13 - User Like Function
