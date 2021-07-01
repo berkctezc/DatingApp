@@ -3266,7 +3266,7 @@ img {
 </button>
 ```
 
-## Reactive Forms
+## 11 - Reactive Forms
 
 - Import ReactiveForms in **app.module.ts**
 - Setup reactive form in **register.component.ts**
@@ -3520,3 +3520,79 @@ export class TextInputComponent implements ControlValueAccessor {
       confirmPassword: ['', [Validators.required, this.matchValues('password')]]
     });}
 ```
+
+### Expanding the register form
+
+- Add new fields to initializeForm in **register-component.ts**
+
+```ts
+  initializeForm() {
+    this.registerForm = this.fb.group({
+      gender: ['male'],
+      username: ['', Validators.required],
+      knownAs: ['', Validators.required],
+      dateOfBirth: ['', Validators.required],
+      city: ['', Validators.required],
+      country: ['', Validators.required],
+      password: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(8)]],
+      confirmPassword: ['', [Validators.required, this.matchValues('password')]]
+    });
+  }
+```
+
+- Add these fields to html template
+
+```html
+<form [formGroup]="registerForm" (ngSubmit)="register()" autocomplete="off">
+  <h2 class="text-center text-primary">Sign up</h2>
+  <hr />
+  <div class="form-group">
+    <label class="control-label" style="margin-right:10px;">I am a:</label>
+    <label class="radio-inline">
+      <input type="radio" value='male' formControlName='gender'>Male
+    </label>
+    <label class="radio-inline">
+      <input type="radio" value='female' formControlName='gender'>
+    </label>
+  </div>
+  <app-text-input [formControl]="registerForm.controls['username']" [label]="'Username'">
+  </app-text-input>
+  <app-text-input [formControl]="registerForm.controls['knownAs']" [label]="'knownAs'">
+  </app-text-input>
+  <app-text-input [formControl]="registerForm.controls['dateOfBirth']" [label]="'dateOfBirth'">
+  </app-text-input>
+  <app-text-input [formControl]="registerForm.controls['city']" [label]="'city'">
+  </app-text-input>
+  <app-text-input [formControl]="registerForm.controls['country']" [label]="'country'">
+  </app-text-input>
+  <app-text-input [formControl]="registerForm.controls['password']" [label]="'Password'" [type]='"password"'>
+  </app-text-input>
+  <app-text-input [formControl]="registerForm.controls['confirmPassword']" [label]="'Confirm Password'"
+    [type]='"password"'>
+  </app-text-input>
+  <div class="form-group text-center">
+    <button class="btn btn-success mr-2" type="submit">Register</button>
+    <button class="btn btn-default mr-2" (click)="cancel()" type="button">
+      Cancel
+    </button>
+  </div>
+</form>
+```
+
+### Adding Reusable date input
+
+
+
+## 12 - Paging, Sorting, Filtering
+
+## 13 - Like user Function
+
+## 14 - Messaging Feature
+
+## 15 - Identity and Role Management
+
+## 16 - SignalR
+
+## 17 - Unit of Work Pattern
+
+## 18 - Publishing
