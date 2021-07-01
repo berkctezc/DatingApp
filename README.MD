@@ -3664,7 +3664,56 @@ export class DateInputComponent implements ControlValueAccessor {
   </app-date-input>
 ```
 
+### Updating the API register method (BE)
 
+- Add new fields to RegisterDto
+
+```cs
+namespace API.DTOs
+{
+    public class RegisterDto
+    {
+        [Required] public string Username { get; set; }
+        [Required] public string KnownAs { get; set; }
+        [Required] public string Gender { get; set; }
+        [Required] public DateTime DateOfBirth { get; set; }
+        [Required] public string City { get; set; }
+        [Required] public string Country { get; set; }
+        [Required] [StringLength(8, MinimumLength = 4)] public string Password { get; set; }
+    }
+}
+```
+
+- Add new mapping to AutoMapperProfiles  `CreateMap<RegisterDto, AppUser>();`
+- Update register action in **AccountController**
+
+```cs
+[HttpPost("register")]
+public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
+{
+    if (await UserExists(registerDto.Username)) return BadRequest("Username is taken");
+
+    var user = _mapper.Map<AppUser>(registerDto);
+
+    using var hmac = new HMACSHA512();
+
+    user.UserName = registerDto.Username.ToLower();
+    user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password));
+    user.PasswordSalt = hmac.Key;
+
+    _context.Add(user);
+    await _context.SaveChangesAsync();
+
+    return new UserDto
+    {
+        Username = user.UserName,
+        Token = _tokenService.CreateToken(user),
+        KnownAs = user.KnownAs // add this new field to UserDto too!!!
+    };
+}
+```
+
+### Client side registration
 
 ## 12 - Paging, Sorting, Filtering
 
