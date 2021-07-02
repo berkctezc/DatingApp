@@ -3883,6 +3883,50 @@ namespace API.Helpers
 }
 ```
 
+### Using the pagination classes
+
+- Updated **GetMembersAsync** method in **IUserRepository.cs** interface to return **PagedList** of MemberDto Task with user parameters  
+  `Task<PagedList<MemberDto>> GetMembersAsync(UserParams userParams);`
+- Updated implementation in **UserRepository.cs**
+
+```cs
+public async Task<PagedList<MemberDto>> GetMembersAsync(UserParams userParams)
+{
+    var query = _context.Users.ProjectTo<MemberDto>(_mapper.ConfigurationProvider).AsNoTracking();
+    return await PagedList<MemberDto>.CreateAsync(query, userParams.PageNumber, userParams.PageSize);
+}
+```
+
+- Updated **UserController** to utilize pagination
+
+```cs
+[HttpGet]
+public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers([FromQuery] UserParams userParams)
+{
+    var users = await _userRepository.GetMembersAsync(userParams);
+    Response.AddPaginationHeader(users.CurrentPage, users.PageSize, users.TotalCount, users.TotalPages);
+    return Ok(users);
+}
+```
+
+- Configure HttpExtensions to return JSON as camel case
+
+```cs
+    public static class HttpExtensions
+    {
+        public static void AddPaginationHeader(this HttpResponse response, int currentPage, int itemsPerPage, int totalItems, int totalPages)
+        {
+            var paginationHeader = new PaginationHeader(currentPage, itemsPerPage, totalItems, totalPages);
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+            response.Headers.Add("Pagination", JsonSerializer.Serialize(paginationHeader, options));
+            response.Headers.Add("Access-Control-Expose-Headers", "Pagination");
+        }
+    }
+```
+
 
 
 ## 13 - User Like Function
