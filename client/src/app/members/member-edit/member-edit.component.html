@@ -1,10 +1,10 @@
 <div class="row" *ngIf="member">
   <div class="col-4">
-    <h1>Your Profile</h1>
+    <h1>Your profile</h1>
   </div>
   <div class="col-8">
     <div class="alert alert-info" *ngIf="editForm.dirty">
-      <strong>Information:</strong> You have made changes. Any unsaved changes
+      <strong>Information: </strong> You have made changes. Any unsaved changes
       will be lost
     </div>
   </div>
@@ -26,17 +26,18 @@
         </div>
         <div>
           <strong>Last Active:</strong>
-          <p>{{ member.lastActive }}</p>
+          <p>{{ member.lastActive | timeago }}</p>
         </div>
         <div>
           <strong>Member since:</strong>
-          <p>{{ member.created }}</p>
+          <p>{{ member.created | date: "dd MMM yyyy" }}</p>
         </div>
       </div>
       <div class="card-footer">
         <button
           [disabled]="!editForm.dirty"
           form="editForm"
+          type="submit"
           class="btn btn-success btn-block"
         >
           Save Changes
@@ -72,17 +73,15 @@
           ></textarea>
           <h4 class="mt-2">Location Details:</h4>
           <div class="form-inline">
-            <label for="city">City</label>
+            <label for="city">City: </label>
             <input
-              class="form-control"
               [(ngModel)]="member.city"
               type="text"
               name="city"
               class="form-control mx-2"
             />
-            <label for="country">Country</label>
+            <label for="city">Country: </label>
             <input
-              class="form-control"
               [(ngModel)]="member.country"
               type="text"
               name="country"
@@ -91,7 +90,7 @@
           </div>
         </form>
       </tab>
-      <tab heading="Edit photos">
+      <tab heading="Edit Photos">
         <app-photo-editor [member]="member"></app-photo-editor>
       </tab>
     </tabset>

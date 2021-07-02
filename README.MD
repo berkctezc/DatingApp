@@ -4077,6 +4077,28 @@ public async Task<PagedList<MemberDto>> GetMembersAsync(UserParams userParams)
 
 - Now we get filtered results but query like this we could get the same gender `/api/users?gender=female`
 
+### Adding Additional Parameters
+
+- Lets add min and max age to UserParams  `public int MinAge { get; set; } = 18;`  `public int MaxAge { get; set; } = 150;`
+- Add new parameters to GetMembersAsync on **UserRepository**
+
+```cs
+        public async Task<PagedList<MemberDto>> GetMembersAsync(UserParams userParams)
+        {
+            var query = _context.Users.AsQueryable();
+            query = query.Where(u => u.UserName != userParams.CurrentUsername);
+            query = query.Where(u => u.Gender == userParams.Gender);
+            var minDob = DateTime.Today.AddYears(-userParams.MaxAge - 1);
+            var maxDob = DateTime.Today.AddYears(-userParams.MinAge);
+            query = query.Where(u => u.DateOfBirth >= minDob && u.DateOfBirth <= maxDob);
+            return await PagedList<MemberDto>.CreateAsync(query.ProjectTo<MemberDto>(_mapper
+            .ConfigurationProvider).AsNoTracking(),
+             userParams.PageNumber, userParams.PageSize);
+        }
+```
+
+### Cleaning up the member service
+
 ## 13 - User Like Function
 
 ## 14 - Messaging Feature
