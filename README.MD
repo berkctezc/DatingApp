@@ -3927,7 +3927,75 @@ public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers([FromQuery] Use
     }
 ```
 
+### Pagination in client
 
+- Create a pagination model in _models
+
+```ts
+export interface Pagination {
+    currentPage: number;
+    itemsPerPage: number;
+    totalItems: number;
+    totalPages: number;
+}
+export class PaginatedResult<T>{
+    result: T;
+    pagination: Pagination;
+}
+```
+
+- Update **member.service.ts** getMembers()
+
+```ts
+ export class MembersService {
+ //...
+  paginatedResult: PaginatedResult<Member[]> = new PaginatedResult<Member[]>();
+ //...
+ getMembers(page?: number, itemsPerPage?: number) {
+    let params = new HttpParams();
+    if (page !== null && itemsPerPage !== null) {
+      params = params.append('pageNumber', page.toString());
+      params = params.append('pageSize', itemsPerPage.toString());
+    }
+    return this.http.get<Member[]>(this.baseUrl + 'users', { observe: 'response', params }).pipe(
+      map(response => {
+        this.paginatedResult.result = response.body;
+        if (response.headers.get('Pagination') !== null) {
+          this.paginatedResult.pagination = JSON.parse(response.headers.get('Pagination'));}
+        return this.paginatedResult;}))}
+  //...
+```
+
+- Update member-list.component
+
+```ts
+export class MemberListComponent implements OnInit {
+  members: Member[];
+  pagination: Pagination;
+  pageNumber = 1;
+  pageSize = 5;
+  constructor(private memberService: MembersService) { }
+  ngOnInit(): void {
+    this.loadMembers();
+  }
+  loadMembers() {
+    this.memberService.getMembers(this.pageNumber, this.pageSize).subscribe(response => {
+      this.members = response.result;
+      this.pagination = response.pagination;
+    })
+  }
+}
+```
+
+- Update member-list html
+
+```html
+<div class="row">
+  <div *ngFor="let member of members" class="col-2">
+    <app-member-card [member]="member"></app-member-card>
+  </div>
+</div>
+```
 
 ## 13 - User Like Function
 
