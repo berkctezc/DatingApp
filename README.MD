@@ -3997,6 +3997,52 @@ export class MemberListComponent implements OnInit {
 </div>
 ```
 
+### Using the angular bootstrap pagination component
+
+- In shared modules import PaginationModule from ngx-bootstrap/pagination
+
+```ts
+//...
+import { PaginationModule } from "ngx-bootstrap/pagination";
+
+@NgModule({
+  declarations: [],
+  imports: [//...
+    PaginationModule.forRoot()
+  ],
+  exports: [//...
+    PaginationModule
+  ]
+})
+```
+
+- Add **pageChanged** event function in **member-list.component** 
+
+```ts
+  pageChanged(event: any) {
+    this.pageNumber = event.page;
+    this.loadMembers();
+  }
+```
+
+- In template use it like this
+
+```html
+<div class="d-flex justify-content-center" *ngIf="pagination">
+  <pagination
+    [boundaryLinks]="true"
+    [totalItems]="pagination.totalItems" [itemsPerPage]="pagination.itemsPerPage"
+    [(ngModel)]="pagination.currentPage"
+    (pageChanged)="pageChanged($event)"
+    previousText="&lsaquo;" nextText="&rsaquo;"
+    firstText="&laquo;" lastText="&raquo;"
+  >
+  </pagination>
+</div>
+```
+
+
+
 ## 13 - User Like Function
 
 ## 14 - Messaging Feature
