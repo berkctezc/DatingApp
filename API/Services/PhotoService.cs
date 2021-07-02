@@ -13,7 +13,12 @@ namespace API.Services
         private readonly Cloudinary _cloudinary;
         public PhotoService(IOptions<CloudinarySettings> config)
         {
-            var acc = new Account(config.Value.CloudName, config.Value.ApiKey, config.Value.ApiSecret);
+            var acc = new Account
+            (
+                config.Value.CloudName,
+                config.Value.ApiKey,
+                config.Value.ApiSecret
+            );
 
             _cloudinary = new Cloudinary(acc);
         }
@@ -39,6 +44,7 @@ namespace API.Services
         public async Task<DeletionResult> DeletePhotoAsync(string publicId)
         {
             var deleteParams = new DeletionParams(publicId);
+
             var result = await _cloudinary.DestroyAsync(deleteParams);
 
             return result;

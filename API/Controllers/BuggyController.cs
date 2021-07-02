@@ -1,3 +1,4 @@
+using System;
 using API.Data;
 using API.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -8,7 +9,6 @@ namespace API.Controllers
     public class BuggyController : BaseApiController
     {
         private readonly DataContext _context;
-
         public BuggyController(DataContext context)
         {
             _context = context;
@@ -28,7 +28,7 @@ namespace API.Controllers
 
             if (thing == null) return NotFound();
 
-            return NotFound(thing);
+            return Ok(thing);
         }
 
         [HttpGet("server-error")]
