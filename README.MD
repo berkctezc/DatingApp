@@ -4019,10 +4019,10 @@ import { PaginationModule } from "ngx-bootstrap/pagination";
 - Add **pageChanged** event function in **member-list.component** 
 
 ```ts
-  pageChanged(event: any) {
+pageChanged(event: any) {
     this.pageNumber = event.page;
     this.loadMembers();
-  }
+}
 ```
 
 - In template use it like this
@@ -4083,21 +4083,410 @@ public async Task<PagedList<MemberDto>> GetMembersAsync(UserParams userParams)
 - Add new parameters to GetMembersAsync on **UserRepository**
 
 ```cs
-        public async Task<PagedList<MemberDto>> GetMembersAsync(UserParams userParams)
-        {
-            var query = _context.Users.AsQueryable();
-            query = query.Where(u => u.UserName != userParams.CurrentUsername);
-            query = query.Where(u => u.Gender == userParams.Gender);
-            var minDob = DateTime.Today.AddYears(-userParams.MaxAge - 1);
-            var maxDob = DateTime.Today.AddYears(-userParams.MinAge);
-            query = query.Where(u => u.DateOfBirth >= minDob && u.DateOfBirth <= maxDob);
-            return await PagedList<MemberDto>.CreateAsync(query.ProjectTo<MemberDto>(_mapper
-            .ConfigurationProvider).AsNoTracking(),
-             userParams.PageNumber, userParams.PageSize);
-        }
+public async Task<PagedList<MemberDto>> GetMembersAsync(UserParams userParams)
+{
+    var query = _context.Users.AsQueryable();
+    query = query.Where(u => u.UserName != userParams.CurrentUsername);
+    query = query.Where(u => u.Gender == userParams.Gender);
+    var minDob = DateTime.Today.AddYears(-userParams.MaxAge - 1);
+    var maxDob = DateTime.Today.AddYears(-userParams.MinAge);
+    query = query.Where(u => u.DateOfBirth >= minDob && u.DateOfBirth <= maxDob);
+    return await PagedList<MemberDto>.CreateAsync(query.ProjectTo<MemberDto>(_mapper.ConfigurationProvider).AsNoTracking(),
+                                                  userParams.PageNumber, userParams.PageSize);
+}
 ```
 
 ### Cleaning up the member service
+
+- Update **UserDto**
+
+```cs
+public class UserDto
+{
+    public string Username { get; set; }
+    public string Token { get; set; }
+    public string PhotoUrl { get; set; }
+    public string KnownAs { get; set; }
+    public string Gender { get; set; }
+}
+```
+
+- Add **Gender to AccountController Login and Register**
+
+```cs
+[HttpPost("register")]
+public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
+{
+    //...
+    return new UserDto
+    {
+        Username = user.UserName,
+        Token = _tokenService.CreateToken(user),
+        KnownAs = user.KnownAs,
+        Gender = user.Gender
+    };
+}
+
+[HttpPost("login")]
+public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
+{
+    //...
+
+    return new UserDto
+    {
+        Username = user.UserName,
+        Token = _tokenService.CreateToken(user),
+        PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url,
+        KnownAs = user.KnownAs,
+        Gender = user.Gender
+    };
+}
+```
+
+- Add knownAs and gender to **user model** in client, change **nav.components.html** welcome text to **knownAs**
+- Create **userParams** model in client
+
+```ts
+import { User } from './user';
+
+export class UserParams {
+    gender: string;
+    minAge = 18;
+    maxAge = 99;
+    pageNumber = 1;
+    pageSize = 5;
+    orderBy = 'lastActive';
+
+    constructor(user: User) {
+        this.gender = user.gender === 'female' ? 'male' : 'female';
+    }
+}
+```
+
+- members.service overhaul
+
+```ts
+export class MembersService {
+  baseUrl = environment.apiUrl;
+  members: Member[] = [];
+  memberCache = new Map();
+  user: User;
+  userParams: UserParams;
+
+  constructor(private http: HttpClient, private accountService: AccountService) {
+    this.accountService.currentUser$.pipe(take(1)).subscribe(user => {
+      this.user = user;
+      this.userParams = new UserParams(user);
+    })
+  }
+//...
+  getMembers(userParams: UserParams) {
+    let params = this.getPaginationHeaders(userParams.pageNumber, userParams.pageSize);
+
+    params = params.append('minAge', userParams.minAge.toString());
+    params = params.append('maxAge', userParams.maxAge.toString());
+    params = params.append('gender', userParams.gender);
+
+    return this.getPaginatedResult<Member[]>(this.baseUrl + 'users', params);
+  }
+//...
+  private getPaginatedResult<T>(url, params) {
+    const paginatedResult: PaginatedResult<T> = new PaginatedResult<T>();
+    return this.http.get<T>(url, { observe: 'response', params }).pipe(
+      map(response => {
+        paginatedResult.result = response.body;
+        if (response.headers.get('Pagination') !== null) {
+          paginatedResult.pagination = JSON.parse(response.headers.get('Pagination'));
+        }
+        return paginatedResult;}));}
+
+  private getPaginationHeaders(pageNumber: number, pageSize: number) {
+    let params = new HttpParams();
+    params = params.append('pageNumber', pageNumber.toString());
+    params = params.append('pageSize', pageSize.toString());
+    return params;}}
+```
+
+- member-list.component
+
+```ts
+export class MemberListComponent implements OnInit {
+  members: Member[];
+  pagination: Pagination;
+  userParams: UserParams;
+  user: User;
+  constructor(private memberService: MembersService, private accountService: AccountService) {
+      this.accountService.currentUser$.pipe(take(1)).subscribe(user=>{
+          this.user=user;
+          this.userParams=new UserParams(user);
+      })}
+  ngOnInit(): void {
+    this.loadMembers();
+  }
+  loadMembers() {
+    this.memberService.getMembers(this.userParams).subscribe(response => {
+      this.members = response.result;
+      this.pagination = response.pagination;
+    })}
+  pageChanged(event: any) {
+    this.userParams.pageNumber = event.page;
+    this.loadMembers();
+  }}
+```
+
+### Filter Buttons on client
+
+- member-list.component add genderList with values and add resetFilter Function
+
+```ts
+export class MemberListComponent implements OnInit {
+//...
+  genderList = [{ value: 'male', display: 'Males' }, { value: 'female', display: 'Females' }];
+//...
+  resetFilters() {
+    this.userParams = this.memberService.resetUserParams();
+    this.loadMembers();
+  }
+}
+```
+
+- member-list html add buttons and selectors
+
+```html
+<div class="text-center mt-3">
+  <h2>Your matches - {{ pagination?.totalItems }} found</h2>
+</div>
+<div class="container mt-3">
+  <form
+    #form="ngForm"
+    class="form-inline mb-3"
+    (ngSubmit)="loadMembers()"
+    autocomplete="off"
+  >
+    <div class="form-group">
+      <label>Age from: </label>
+      <input
+        type="number"
+        class="form-control ml-1"
+        style="width: 70px"
+        name="minAge"
+        [(ngModel)]="userParams.minAge"
+      />
+    </div>
+
+    <div class="form-group px-2">
+      <label>Age to: </label>
+      <input
+        type="number"
+        class="form-control ml-1"
+        style="width: 70px"
+        name="maxAge"
+        [(ngModel)]="userParams.maxAge"
+      />
+    </div>
+
+    <div class="form-group px-2">
+      <label>Show: </label>
+      <select
+        name="gender"
+        style="width: 130px"
+        [(ngModel)]="userParams.gender"
+        class="form-control ml-1"
+      >
+        <option *ngFor="let gender of genderList" [value]="gender.value">
+          {{ gender.display }}
+        </option>
+      </select>
+    </div>
+    <button class="btn btn-primary ml-1" type="submit">Apply Filters</button>
+    <button (click)="resetFilters()" class="btn btn-info ml-1" type="submit">
+      Reset Filters
+    </button>
+  </form>
+</div>
+```
+
+### Sort functionality
+
+- Add OrderBy field to UserParams and set initial value "LastActive" in API
+- Add OrderBy functionality to UserRepository
+
+```cs
+query = userParams.OrderBy switch
+{
+        "created" => query.OrderByDescending(u => u.Created),
+        _ => query.OrderByDescending(u => u.LastActive)
+};
+```
+
+### Adding an action filter (LogUserActivity)
+
+- Create **LogUserActivity** helper method
+
+```cs
+namespace API.Helpers
+{
+    public class LogUserActivity : IAsyncActionFilter
+    {
+        public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+        {
+            var resultContext = await next();
+
+            if (!resultContext.HttpContext.User.Identity.IsAuthenticated) return;
+
+            var username = resultContext.HttpContext.User.GetUsername();
+            var repo = resultContext.HttpContext.RequestServices.GetService<IUserRepository>();
+            var user = await repo.GetUserByUsernameAsync(username);
+            user.LastActive = DateTime.Now;
+            await repo.SaveAllAsync();
+        }
+    }
+}
+```
+
+- Add to ApplicationServiceExtensions  `services.AddScoped<LogUserActivity>();`
+- Filter through adding to BaseApiController `[ServiceFilter(typeof(LogUserActivity))]`
+
+### Making the LastActive action filter more optimal
+
+- In **TokenService** change setting claim method in create token function
+
+```cs
+public string CreateToken(AppUser user)
+{
+    var claims = new List<Claim>
+		{
+            new Claim(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName),
+        };
+//...
+}
+```
+
+- Add **GetUserId** method to **ClaimsPrincipleExtensions**
+
+```cs
+public static int GetUserId(this ClaimsPrincipal user)
+{
+    return int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+}
+```
+
+- In **LogUserActivity** change username to userId   
+  `var userId = resultContext.HttpContext.User.GetUserId();` 
+  and change GetUserByUsernameAsync to ById
+   `var user = await repo.GetUserByIdAsync(userId);`
+
+### Sorting on client
+
+- Import **ButtonsModule** from ngx-bootstrap in **shared.module.ts**
+- Add **orderBy** field to **userParams.ts** and add it to get members  `params = params.append('gender', userParams.gender);`
+- Add sorting to view member-list
+
+```html
+ <div class="col">
+      <div class="btn-group float-right">
+        <button type="button" class="btn btn-primary" name="orderBy" (click)="loadMembers()" btnRadio="lastActive" [(ngModel)]="userParams.orderBy">Last Active
+        </button>
+        <button type="button" class="btn btn-primary" name="orderBy" (click)="loadMembers()" btnRadio="created" [(ngModel)]="userParams.orderBy">Newest Members
+        </button>
+      </div>
+    </div>
+```
+
+### Formatting Dates
+
+- Install **ngx-timeago** with npm and import, export in **shared.module.ts**
+- member-detail view
+
+```html
+<div>
+    <strong>Last Active:</strong>
+    <p>{{ member.lastActive | timeago }}</p>
+</div>
+<div>
+    <strong>Member since:</strong>
+    <p>{{ member.created | date: "dd MMM yyyy" }}</p>
+</div>
+```
+
+### Restoring the caching for members
+
+- Create a **memberCache** map in **members.service** and implement caching in getMembers
+
+```ts
+export class MembersService {
+//...
+  userParams: UserParams;
+//...
+  getMembers(userParams: UserParams) {
+    var response = this.memberCache.get(Object.values(userParams).join('-'));
+    if (response) { return of(response); }
+
+    let params = this.getPaginationHeaders(userParams.pageNumber, userParams.pageSize);
+      
+    params = params.append('minAge', userParams.minAge.toString());
+    params = params.append('maxAge', userParams.maxAge.toString());
+    params = params.append('gender', userParams.gender);
+    params = params.append('orderBy', userParams.orderBy);
+
+    return this.getPaginatedResult<Member[]>(this.baseUrl + 'users', params)
+      .pipe(map(response => {
+        this.memberCache.set(Object.values(userParams).join('-'), response);
+        return response;
+      }))
+  }
+```
+
+### Restoring caching for member detailed
+
+- Update **getMember** method in **members.service**
+
+```ts
+getMember(username: string) {
+    const member = [...this.memberCache.values()]
+    .reduce((arr, elem) => arr.concat(elem.result), [])
+    .find((member: Member) => member.username === username);
+
+    if (member) {
+        return of(member);
+    }
+    return this.http.get<Member>(this.baseUrl + 'users/' + username);
+}
+```
+
+### Remembering the filters for a user in the service
+
+- Inject **accountService** into **members.service** and move the functionality of the member-list constructor to the members.service's
+
+```ts
+export class MembersService {
+    //...  
+    user: User;
+    userParams: UserParams;
+
+    constructor(private http: HttpClient, private accountService: AccountService) {
+        this.accountService.currentUser$.pipe(take(1)).subscribe(user => {
+            this.user = user;
+            this.userParams = new UserParams(user);
+        })
+    }
+
+    getUserParams() {
+        return this.userParams;
+    }
+
+    setUserParams(params: UserParams) {
+        this.userParams = params;
+    }
+
+    resetUserParams() {
+        this.userParams = new UserParams(this.user);
+        return this.userParams;
+    }
+```
+
+
 
 ## 13 - User Like Function
 
