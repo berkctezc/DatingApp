@@ -4041,7 +4041,41 @@ import { PaginationModule } from "ngx-bootstrap/pagination";
 </div>
 ```
 
+### Filtering in API
 
+- We only want to show opposite gender and not themselves on the members list. First add **CurrentUsername** and **Gender** fields to **UserParams.cs**
+- Update **UsersController GetUsers** Action
+
+```cs
+[HttpGet]
+public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers([FromQuery] UserParams userParams)
+{
+    var user = await _userRepository.GetUserByUsernameAsync(User.GetUserName());
+    userParams.CurrentUsername = user.UserName;
+    if (string.IsNullOrEmpty(userParams.Gender)) userParams.Gender = user.Gender == "male" ? "female" : "male";
+    var users = await _userRepository.GetMembersAsync(userParams);
+    Response.AddPaginationHeader(users.CurrentPage, users.PageSize, users.TotalCount, users.TotalPages);
+    return Ok(users);
+}
+```
+
+- Update **UserRepository GetMembersAsync** query
+
+```cs
+public async Task<PagedList<MemberDto>> GetMembersAsync(UserParams userParams)
+{
+    var query = _context.Users.AsQueryable();
+
+    query = query.Where(u => u.UserName != userParams.CurrentUsername);
+    query = query.Where(u => u.Gender == userParams.Gender);
+
+    return await PagedList<MemberDto>.CreateAsync(query.ProjectTo<MemberDto>(_mapper
+                                                                             .ConfigurationProvider).AsNoTracking(),
+                                                  userParams.PageNumber, userParams.PageSize);
+}
+```
+
+- Now we get filtered results but query like this we could get the same gender `/api/users?gender=female`
 
 ## 13 - User Like Function
 
