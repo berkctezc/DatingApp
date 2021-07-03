@@ -4471,24 +4471,112 @@ export class MembersService {
             this.userParams = new UserParams(user);
         })
     }
-
     getUserParams() {
         return this.userParams;
     }
-
     setUserParams(params: UserParams) {
         this.userParams = params;
     }
-
     resetUserParams() {
         this.userParams = new UserParams(this.user);
         return this.userParams;
     }
 ```
 
+- Update **member-list.component.ts** accordingly
 
+```ts
+export class MemberListComponent implements OnInit {
+  members: Member[];
+  pagination: Pagination;
+  userParams: UserParams;
+  user: User;
+  genderList = [{ value: 'male', display: 'Males' }, { value: 'female', display: 'Females' }];
+  constructor(private memberService: MembersService) {
+    this.userParams = this.memberService.getUserParams();
+  }
+  ngOnInit(): void {
+    this.loadMembers();
+  }
+  loadMembers() {
+    this.memberService.setUserParams(this.userParams);
+    this.memberService.getMembers(this.userParams).subscribe(response => {
+      this.members = response.result;
+      this.pagination = response.pagination;
+    })
+  }
+  resetFilters() {
+    this.userParams = this.memberService.resetUserParams();
+    this.loadMembers();
+  }
+  pageChanged(event: any) {
+    this.userParams.pageNumber = event.page;
+    this.memberService.setUserParams(this.userParams);
+    this.loadMembers();
+  }
+}
+```
 
-## 13 - User Like Function
+## 13 - Like User Function
+
+### Creating Likes Entity
+
+- Create a join entity **UserLike.cs** for joining User to User
+
+```cs
+namespace API.Entities
+{
+    public class UserLike
+    {
+        public AppUser SourceUser { get; set; }
+        public int SourceUserId { get; set; }
+        public AppUser LikedUser { get; set; }
+        public int LikedUserId { get; set; }
+    }
+}
+```
+
+- Add relational fields to AppUser `public ICollection<UserLike> LikedByUsers { get; set; }` `public ICollection<UserLike> LikedUsers { get; set; }`
+- Add to DataContext and set relations in there
+
+```cs
+namespace API.Data
+{
+    public class DataContext : DbContext
+    {
+        public DataContext(DbContextOptions options) : base(options)
+        {
+        }
+
+        public DbSet<AppUser> Users { get; set; }
+        public DbSet<UserLike> Likes { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+
+            builder.Entity<UserLike>()
+                .HasKey(k => new { k.SourceUserId, k.LikedUserId });
+
+            builder.Entity<UserLike>()
+                .HasOne(s => s.SourceUser)
+                .WithMany(l => l.LikedUsers)
+                .HasForeignKey(s => s.SourceUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<UserLike>()
+                .HasOne(s => s.LikedUser)
+                .WithMany(l => l.LikedByUsers)
+                .HasForeignKey(s => s.SourceUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
+    }
+}
+```
+
+- Run a migration  `dotnet ef migrations add LikedEntityAdded`
+
+### Creating Likes Repository
 
 ## 14 - Messaging Feature
 
