@@ -2,7 +2,7 @@
 
 namespace API.Data.Migrations
 {
-    public partial class LikedEntityAdded : Migration
+    public partial class LikeEntityAdded : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
