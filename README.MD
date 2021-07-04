@@ -5232,9 +5232,34 @@ namespace API.Data
 }
 ```
 
+- Add to ApplicationServiceExtensions  `services.AddScoped<IMessageRepository, MessageRepository>();`
+
+### Setting up automapper profiles
+
+- **AutoMapperProfiles.cs**
+
+```cs
+ CreateMap<Message, MessageDto>()
+                .ForMember(dest => dest.SenderPhotoUrl, memberOptions => memberOptions.MapFrom(src =>
+                    src.Sender.Photos.FirstOrDefault(x => x.IsMain).Url))
+                .ForMember(dest => dest.RecipientPhotoUrl, memberOptions => memberOptions.MapFrom(src =>
+                    src.Recipient.Photos.FirstOrDefault(x => x.IsMain).Url));
+```
+
+- Created **CreateMessageDTO**
+
+```cs
+namespace API.DTOs
+{
+    public class CreateMessageDto
+    {
+        public string RecipientUsername { get; set; }
+        public string Content { get; set; }
+    }
+}
+```
 
 
-- Add to ApplicationServiceExtensions
 
 ## 15 - Identity and Role Management
 
