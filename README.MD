@@ -4664,6 +4664,119 @@ namespace API.Data
 
 ### Controller methods for the likes feature
 
+```cs
+namespace API.Controllers
+{
+    [Authorize]
+    public class LikesController : BaseApiController
+    {
+        private readonly ILikesRepository _likesRepository;
+        private readonly IUserRepository _userRepository;
+        public LikesController(IUserRepository userRepository, ILikesRepository likesRepository)
+        {
+            _userRepository = userRepository;
+            _likesRepository = likesRepository;
+        }
+
+        [HttpPost("{username}")]
+        public async Task<ActionResult> AddLike(string username)
+        {
+            var sourceUserId = User.GetUserId();
+            var likedUser = await _userRepository.GetUserByUsernameAsync(username);
+            var sourceUser = await _likesRepository.GetUserWithLikes(sourceUserId);
+
+            if (likedUser == null) return NotFound();
+
+            if (sourceUser.UserName == username) return BadRequest("You cannot like yourself");
+
+            var userLike = await _likesRepository.GetUserLike(sourceUserId, likedUser.Id);
+
+            if (userLike != null) return BadRequest("You already like this user");
+
+            userLike = new UserLike
+            {
+                SourceUserId = sourceUserId,
+                LikedUserId = likedUser.Id
+            };
+
+            sourceUser.LikedUsers.Add(userLike);
+
+            if (await _userRepository.SaveAllAsync()) return Ok();
+
+            return BadRequest("Failed to like user");
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<LikeDto>>> GetUserLikes(string predicate)
+        {
+            var users = await _likesRepository.GetUserLikes(predicate, User.GetUserId());
+
+            return Ok(users);
+        }
+    }
+}
+```
+
+### Likes function on angular app (client)
+
+- **members.service.ts**
+
+```ts
+  addLike(username: string) {
+    return this.http.post(this.baseUrl + 'likes/' + username, {})
+  }
+  getLikes(predicate: string) {
+    return this.http.get(this.baseUrl + 'likes?=' + predicate);
+  }
+```
+
+- **member-card.component.ts**
+
+```ts
+export class MemberCardComponent implements OnInit {
+  @Input() member: Member;
+
+  constructor(private memberService: MembersService, private toastr: ToastrService) { }
+
+  ngOnInit(): void {}
+  addLike(member: Member) {
+    this.memberService.addLike(member.username).subscribe(() => {
+      this.toastr.success('You have liked ' + member.knownAs);
+    })
+  }
+}
+```
+
+- **member-card.component.html**
+
+```ht
+<li class="list-inline-item">
+    <button (click)="addLike(member)" class="btn btn-primary">
+        <i class="fa fa-heart"></i>
+    </button>
+</li>
+```
+
+- Get error message from api to show in toastr. **in error.interceptor.ts**
+
+```ts
+case 400:
+              if (error.error.errors) {
+                const modalStateErrors = [];
+                for (const key in error.error.errors) {
+                  if (error.error.errors[key]) {
+                    modalStateErrors.push(error.error.errors[key])
+                  }
+                }
+                throw modalStateErrors.flat();
+              } else if (typeof (error.error) === 'object') { // here
+                this.toastr.error(error.statusText, error.status);
+              } else {									// and here
+                this.toastr.error(error.error, error.status)
+              }
+//....
+```
+
 
 
 ## 14 - Messaging Feature
