@@ -5152,7 +5152,89 @@ public ICollection<Message> MessagesReceived { get; set; }
         }
 ```
 
+- Add migration `dotnet ef migrations add MessageEntityAdded`
 
+### Setting up message repository
+
+- Create Dto
+
+```cs
+namespace API.DTOs
+{
+    public class MessageDto
+    {
+        public int Id { get; set; }
+        public int SenderId { get; set; }
+        public string SenderUsername { get; set; }
+        public string SenderPhotoUrl { get; set; }
+        public int RecipientId { get; set; }
+        public string RecipientUsername { get; set; }
+        public string RecipientPhotoUrl { get; set; }
+
+        public string Content { get; set; }
+        public DateTime? DateRead { get; set; }
+        public DateTime MessageSent { get; set; }
+    }
+}
+```
+
+- Create interface and implement it
+
+```cs
+namespace API.Interfaces
+{
+    public interface IMessageRepository
+    {
+        void AddMessage(Message message);
+        void DeleteMessage(Message message);
+        Task<Message> GetMessage(int id);
+        Task<PagedList<MessageDto>> GetMessagesForUser();
+        Task<IEnumerable<MessageDto>> GetMessageThread(int currentUserId, int recipientId);
+        Task<bool> SaveAllAsync();
+    }
+}
+```
+
+```cs
+namespace API.Data
+{
+    public class MessageRepository : IMessageRepository
+    {
+        private readonly DataContext _context;
+        public MessageRepository(DataContext context)
+        {
+            _context = context;
+        }
+
+        public void AddMessage(Message message)
+        {
+            _context.Messages.Add(message);
+        }
+
+        public void DeleteMessage(Message message)
+        {
+            _context.Messages.Remove(message);
+        }
+
+        public async Task<Message> GetMessage(int id)
+        {
+            return await _context.Messages.FindAsync(id);
+        }
+
+        public Task<PagedList<MessageDto>> GetMessagesForUser(){throw new System.NotImplementedException();}
+        public Task<IEnumerable<MessageDto>> GetMessageThread(int currentUserId, int recipientId){throw new System.NotImplementedException();}
+
+        public async Task<bool> SaveAllAsync()
+        {
+            return await _context.SaveChangesAsync() > 0;
+        }
+    }
+}
+```
+
+
+
+- Add to ApplicationServiceExtensions
 
 ## 15 - Identity and Role Management
 
