@@ -5003,11 +5003,156 @@ namespace API.Helpers
 
 ### Pagination on client
 
-=======
+- **members.service.ts**
 
-> > > > > > > 2b2cd8c577d49302c7ae94b3857770f3cbcf800e
+```ts
+  getLikes(predicate: string, pageNumber, pageSize) {
+    let params = this.getPaginationHeaders(pageNumber, pageSize);
+    params = params.append('predicate', predicate);
+    return this.getPaginatedResult<Partial<Member[]>>(this.baseUrl + 'likes', params);
+  }
+```
+
+- **list.component.ts**
+
+```ts
+export class ListsComponent implements OnInit {
+  members: Partial<Member[]>;
+  predicate = 'liked';
+  pageNumber = 1;
+  pageSize = 5;
+  pagination: Pagination;
+
+  constructor(private memberService: MembersService) { }
+
+  ngOnInit(): void {
+    this.loadLikes(this.predicate);
+  }
+
+  loadLikes(s: string) {
+    this.memberService.getLikes(s, this.pageNumber, this.pageSize).subscribe(response => {
+      this.members = response.result;
+      this.pagination = response.pagination;
+    })
+  }
+
+  pageChanged(event: any) {
+    this.pageNumber = event.page;
+    this.loadLikes(this.predicate);
+  }
+}
+```
+
+- **list.component.html**
+
+```html
+<div class="text-center mt-3">
+  <h2>
+    {{ predicate === "liked" ? "Members I like" : "Members who like me" }}
+  </h2>
+</div>
+
+<div class="container mt-3">
+  <div class="row">
+    <div class="btn-group" name="predicate">
+      <button
+        class="btn btn-primary"
+        btnRadio="liked"
+        [(ngModel)]="predicate"
+        (click)="loadLikes('liked')"
+      >
+        Members I like
+      </button>
+      <button
+        class="btn btn-primary"
+        btnRadio="likedBy"
+        [(ngModel)]="predicate"
+        (click)="loadLikes('likedBy')"
+      >
+        Members who like me
+      </button>
+    </div>
+  </div>
+
+  <div class="row mt-3">
+    <div class="col-2" *ngFor="let member of members">
+      <app-member-card [member]="member"></app-member-card>
+    </div>
+  </div>
+</div>
+
+<div class="d-flex justify-content-center" *ngIf="pagination">
+  <pagination
+    [boundaryLinks]="true"
+    [totalItems]="pagination.totalItems"
+    [itemsPerPage]="pagination.itemsPerPage"
+    [(ngModel)]="pagination.currentPage"
+    (pageChanged)="pageChanged($event)"
+    previousText="&lsaquo;"
+    nextText="&rsaquo;"
+    firstText="&laquo;"
+    lastText="&raquo;"
+  >
+  </pagination>
+</div>
+```
 
 ## 14 - Messaging Feature
+
+### Setting up the entitites for messaging
+
+- Create message entity
+
+```cs
+namespace API.Entities
+{
+    public class Message
+    {
+        public int Id { get; set; }
+        public int SenderId { get; set; }
+        public string SenderUsername { get; set; }
+        public AppUser Sender { get; set; }
+        public int RecipientId { get; set; }
+        public string RecipientUsername { get; set; }
+        public AppUser Recipient { get; set; }
+
+        public string Content { get; set; }
+        public DateTime? DateRead { get; set; }
+        public DateTime MessageSent { get; set; } = DateTime.Now;
+        public bool SenderDeleted { get; set; }
+        public bool RecipientDeleted { get; set; }
+    }
+}
+```
+
+- Add message fields to AppUser
+
+```cs
+public ICollection<Message> MessagesSent { get; set; }
+public ICollection<Message> MessagesReceived { get; set; }
+```
+
+- Add to context
+
+```cs
+   public DbSet<Message> Messages { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            //...
+                        builder.Entity<Message>()
+                .HasOne(u => u.Recipient)
+                .WithMany(m => m.MessagesReceived)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Message>()
+                .HasOne(u => u.Sender)
+                .WithMany(m => m.MessagesSent)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
+```
+
+
 
 ## 15 - Identity and Role Management
 
