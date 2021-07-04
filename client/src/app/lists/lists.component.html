@@ -11,7 +11,7 @@
         class="btn btn-primary"
         btnRadio="liked"
         [(ngModel)]="predicate"
-        (click)="loadLikes()"
+        (click)="loadLikes('liked')"
       >
         Members I like
       </button>
@@ -19,15 +19,31 @@
         class="btn btn-primary"
         btnRadio="likedBy"
         [(ngModel)]="predicate"
-        (click)="loadLikes()"
+        (click)="loadLikes('likedBy')"
       >
         Members who like me
       </button>
     </div>
   </div>
+
   <div class="row mt-3">
     <div class="col-2" *ngFor="let member of members">
       <app-member-card [member]="member"></app-member-card>
     </div>
   </div>
+</div>
+
+<div class="d-flex justify-content-center" *ngIf="pagination">
+  <pagination
+    [boundaryLinks]="true"
+    [totalItems]="pagination.totalItems"
+    [itemsPerPage]="pagination.itemsPerPage"
+    [(ngModel)]="pagination.currentPage"
+    (pageChanged)="pageChanged($event)"
+    previousText="&lsaquo;"
+    nextText="&rsaquo;"
+    firstText="&laquo;"
+    lastText="&raquo;"
+  >
+  </pagination>
 </div>

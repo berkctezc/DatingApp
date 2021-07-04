@@ -4827,7 +4827,7 @@ export class ListsComponent implements OnInit {
 
 ### Adding pagination for the likes (BE)
 
-- Moved paginationParams from users to reusable PaginationParams.cs
+- Moved paginationParams from users to reusable **PaginationParams.cs** and inherit in **UserParams.cs**
 
 ```cs
 namespace API.Helpers
@@ -4846,6 +4846,72 @@ namespace API.Helpers
     }
 }
 ```
+
+- **LikesParams.cs**
+
+```cs
+namespace API.Helpers
+{
+    public class LikesParams : PaginationParams
+    {
+        public int UserId { get; set; }
+        public string Predicate { get; set; }
+    }
+}
+```
+
+- Update **Likes Repository interface GetUserLikes** method to return `Task<PagedList<LikeDto>>` .
+   `Task<PagedList<LikeDto>> GetUserLikes(LikesParams likesParams);`
+- Change **LikesRepository** GetUserLikes method
+
+```cs
+        public async Task<PagedList<LikeDto>> GetUserLikes(LikesParams likesParams)
+        {
+            IQueryable<AppUser> users = _context.Users.OrderBy(u => u.UserName).AsQueryable();
+            IQueryable<UserLike> likes = _context.Likes.AsQueryable();
+
+            if (likesParams.Predicate == "liked")
+            {
+                likes = likes.Where(like => like.SourceUserId == likesParams.UserId);
+                users = likes.Select(like => like.LikedUser);
+            }
+
+            if (likesParams.Predicate == "likedBy")
+            {
+                likes = likes.Where(like => like.LikedUserId == likesParams.UserId);
+                users = likes.Select(like => like.SourceUser);
+            }
+
+            var likedUsers = users.Select(user => new LikeDto
+            {
+                Username = user.UserName,
+                KnownAs = user.KnownAs,
+                Age = user.DateOfBirth.CalculateAge(),
+                PhotoUrl = user.Photos.FirstOrDefault(p => p.IsMain).Url,
+                City = user.City,
+                Id = user.Id
+            });
+
+            return await PagedList<LikeDto>.CreateAsync(likedUsers, likesParams.PageNumber, likesParams.PageSize);
+        }
+```
+
+- Update **LikesController GetUserLikes**
+
+```cs
+[HttpGet]
+        public async Task<ActionResult<IEnumerable<LikeDto>>> GetUserLikes([FromQuery] LikesParams likesParams)
+        {
+            likesParams.UserId = User.GetUserId();
+            var users = await _likesRepository.GetUserLikes(likesParams);
+
+            Response.AddPaginationHeader(users.CurrentPage, users.PageSize, users.TotalCount, users.TotalPages);
+
+            return Ok(users);
+        }
+```
+
+### Pagination on client
 
 
 
