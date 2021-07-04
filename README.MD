@@ -4616,6 +4616,7 @@ namespace API.Interfaces
 - Implement LikesRepository
 
 ```cs
+
 namespace API.Data
 {
     public class LikesRepository : ILikesRepository
@@ -4633,19 +4634,16 @@ namespace API.Data
         {
             var users = _context.Users.OrderBy(u => u.UserName).AsQueryable();
             var likes = _context.Likes.AsQueryable();
-
             if (predicate == "liked")
             {
                 likes = likes.Where(likes => likes.SourceUserId == userId);
                 users = likes.Select(likes => likes.LikedUser);
             }
-
             if (predicate == "likedBy")
             {
                 likes = likes.Where(like => like.LikedUserId == userId);
                 users = likes.Select(like => like.SourceUser);
             }
-
             return await users.Select(user => new LikeDto
             {
                 Username = user.UserName,
@@ -4656,16 +4654,15 @@ namespace API.Data
                 Id = user.Id
             }).ToListAsync();
         }
-
-        public async Task<AppUser> GetUsersWithLikes(int userId)
+        public async Task<AppUser> GetUserWithLikes(int userId)
         {
-            return await _context.Users
-                .Include(x => x.Id == userId)
-                .FirstOrDefaultAsync(x => x.Id == userId);
+            return await _context.Users.Include(x => x.LikedUsers).FirstOrDefaultAsync(x => x.Id == userId);
         }
     }
 }
 ```
+
+### Controller methods for the likes feature
 
 
 

@@ -99,9 +99,12 @@ namespace API.Data.Migrations
                     b.Property<int>("LikedUserId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("SourceUserId")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("SourceUserId", "LikedUserId");
 
-                    b.HasIndex("LikedUserId");
+                    b.HasIndex("SourceUserId");
 
                     b.ToTable("Likes");
                 });
@@ -121,15 +124,13 @@ namespace API.Data.Migrations
                 {
                     b.HasOne("API.Entities.AppUser", "LikedUser")
                         .WithMany("LikedByUsers")
-                        .HasForeignKey("LikedUserId")
+                        .HasForeignKey("SourceUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("API.Entities.AppUser", "SourceUser")
                         .WithMany("LikedUsers")
-                        .HasForeignKey("SourceUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("SourceUserId");
 
                     b.Navigation("LikedUser");
 

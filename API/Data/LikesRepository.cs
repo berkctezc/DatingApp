@@ -29,8 +29,8 @@ namespace API.Data
 
             if (predicate == "liked")
             {
-                likes = likes.Where(likes => likes.SourceUserId == userId);
-                users = likes.Select(likes => likes.LikedUser);
+                likes = likes.Where(like => like.SourceUserId == userId);
+                users = likes.Select(like => like.LikedUser);
             }
 
             if (predicate == "likedBy")
@@ -50,10 +50,10 @@ namespace API.Data
             }).ToListAsync();
         }
 
-        public async Task<AppUser> GetUsersWithLikes(int userId)
+        public async Task<AppUser> GetUserWithLikes(int userId)
         {
             return await _context.Users
-                .Include(x => x.Id == userId)
+                .Include(x => x.LikedUsers)
                 .FirstOrDefaultAsync(x => x.Id == userId);
         }
     }
