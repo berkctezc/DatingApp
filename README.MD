@@ -4726,7 +4726,7 @@ namespace API.Controllers
     return this.http.post(this.baseUrl + 'likes/' + username, {})
   }
   getLikes(predicate: string) {
-    return this.http.get(this.baseUrl + 'likes?=' + predicate);
+    return this.http.get<Partial<Member[]>>(this.baseUrl + 'likes?predicate=' + predicate);
   }
 ```
 
@@ -4775,6 +4775,54 @@ case 400:
                 this.toastr.error(error.error, error.status)
               }
 //....
+```
+
+### Adding the likes component
+
+- **list.component.ts**
+
+```ts
+export class ListsComponent implements OnInit {
+  members: Partial<Member[]>;
+  predicate = 'liked';
+  constructor(private memberService: MembersService) { }
+  ngOnInit(): void {
+    this.loadLikes();
+  }
+  loadLikes() {
+    this.memberService.getLikes(this.predicate).subscribe(response => {
+      this.members = response;
+    })
+  }
+}
+```
+
+- View
+
+```html
+<div class="text-center mt-3">
+  <h2>
+    {{ predicate === "liked" ? "Members I like" : "Members who like me" }}
+  </h2>
+</div>
+
+<div class="container mt-3">
+  <div class="row">
+    <div class="btn-group" name="predicate">
+      <button class="btn btn-primary" btnRadio="liked" [(ngModel)]="predicate" (click)="loadLikes()">
+        Members I like
+      </button>
+      <button class="btn btn-primary" btnRadio="likedBy" [(ngModel)]="predicate" (click)="loadLikes()">
+        Members who like me
+      </button>
+    </div>
+  </div>
+  <div class="row mt-3">
+    <div class="col-2" *ngFor="let member of members">
+      <app-member-card [member]="member"></app-member-card>
+    </div>
+  </div>
+</div>
 ```
 
 
