@@ -3549,19 +3549,48 @@ export class TextInputComponent implements ControlValueAccessor {
   <div class="form-group">
     <label class="control-label" style="margin-right:10px;">I am a:</label>
     <label class="radio-inline">
-      <input type="radio" value='male' formControlName='gender'>Male
+      <input type="radio" value="male" formControlName="gender" />Male
     </label>
     <label class="radio-inline">
-      <input type="radio" value='female' formControlName='gender'>Female
+      <input type="radio" value="female" formControlName="gender" />Female
     </label>
   </div>
-  <app-text-input [formControl]="registerForm.controls['username']" [label]="'Username'">
-  </app-text-input><app-text-input [formControl]="registerForm.controls['knownAs']" [label]="'knownAs'">
-  </app-text-input><app-text-input [formControl]="registerForm.controls['dateOfBirth']" [label]="'dateOfBirth'">
-  </app-text-input><app-text-input [formControl]="registerForm.controls['city']" [label]="'city'">
-  </app-text-input><app-text-input [formControl]="registerForm.controls['country']" [label]="'country'">
-  </app-text-input>  <app-text-input [formControl]="registerForm.controls['password']" [label]="'Password'" [type]='"password"'>
-  </app-text-input><app-text-input [formControl]="registerForm.controls['confirmPassword']" [label]="'Confirm Password'" [type]='"password"'>
+  <app-text-input
+    [formControl]="registerForm.controls['username']"
+    [label]="'Username'"
+  >
+  </app-text-input
+  ><app-text-input
+    [formControl]="registerForm.controls['knownAs']"
+    [label]="'knownAs'"
+  >
+  </app-text-input
+  ><app-text-input
+    [formControl]="registerForm.controls['dateOfBirth']"
+    [label]="'dateOfBirth'"
+  >
+  </app-text-input
+  ><app-text-input
+    [formControl]="registerForm.controls['city']"
+    [label]="'city'"
+  >
+  </app-text-input
+  ><app-text-input
+    [formControl]="registerForm.controls['country']"
+    [label]="'country'"
+  >
+  </app-text-input>
+  <app-text-input
+    [formControl]="registerForm.controls['password']"
+    [label]="'Password'"
+    [type]='"password"'
+  >
+  </app-text-input
+  ><app-text-input
+    [formControl]="registerForm.controls['confirmPassword']"
+    [label]="'Confirm Password'"
+    [type]='"password"'
+  >
   </app-text-input>
   <div class="form-group text-center">
     <button class="btn btn-success mr-2" type="submit">Register</button>
@@ -3610,9 +3639,9 @@ export class DateInputComponent implements ControlValueAccessor {
   constructor(public ngControl: NgControl) {
     this.ngControl.valueAccessor = this;
     this.bsConfig = {
-      containerClass: 'theme-red',
-      dateInputFormat: 'DD MMMM YYYY'
-    }
+      containerClass: "theme-red",
+      dateInputFormat: "DD MMMM YYYY",
+    };
   }
   writeValue(obj: any): void {}
   registerOnChange(fn: any): void {}
@@ -3656,12 +3685,12 @@ export class DateInputComponent implements ControlValueAccessor {
 - Pass date to template (**register.component.html**)
 
 ```html
-  <app-date-input
-    [formControl]="registerForm.controls['dateOfBirth']"
-    [label]="'dateOfBirth'"
-    [maxDate]="maxDate"
-  >
-  </app-date-input>
+<app-date-input
+  [formControl]="registerForm.controls['dateOfBirth']"
+  [label]="'dateOfBirth'"
+  [maxDate]="maxDate"
+>
+</app-date-input>
 ```
 
 ### Updating the API register method (BE)
@@ -3684,7 +3713,7 @@ namespace API.DTOs
 }
 ```
 
-- Add new mapping to AutoMapperProfiles  `CreateMap<RegisterDto, AppUser>();`
+- Add new mapping to AutoMapperProfiles `CreateMap<RegisterDto, AppUser>();`
 - Update register action in **AccountController**
 
 ```cs
@@ -3743,12 +3772,10 @@ export class RegisterComponent implements OnInit {
   (ngSubmit)="registerForm.valid && register()"
   autocomplete="off"
 >
-<!-FORM FIELDS HERE-->
+  <!-FORM FIELDS HERE-->
   <div class="row" *ngIf="validationErrors.length > 0">
     <ul class="text-danger">
-      <li *ngFor="let error of validationErrors">
-        {{ error }}
-      </li>
+      <li *ngFor="let error of validationErrors">{{ error }}</li>
     </ul>
   </div>
 
@@ -3770,8 +3797,10 @@ export class RegisterComponent implements OnInit {
 - Some enhancements like update navbar photo when user uploads new photo **nav.component.html**
 
 ```html
-  <img src="{{ user.photoUrl || './assets/user.png' }}"
-        alt="{{ user.photoUrl }}"/>
+<img
+  src="{{ user.photoUrl || './assets/user.png' }}"
+  alt="{{ user.photoUrl }}"
+/>
 ```
 
 - Set new main in everywhere. In **photo-editor.component**
@@ -3929,18 +3958,18 @@ public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers([FromQuery] Use
 
 ### Pagination in client
 
-- Create a pagination model in _models
+- Create a pagination model in \_models
 
 ```ts
 export interface Pagination {
-    currentPage: number;
-    itemsPerPage: number;
-    totalItems: number;
-    totalPages: number;
+  currentPage: number;
+  itemsPerPage: number;
+  totalItems: number;
+  totalPages: number;
 }
-export class PaginatedResult<T>{
-    result: T;
-    pagination: Pagination;
+export class PaginatedResult<T> {
+  result: T;
+  pagination: Pagination;
 }
 ```
 
@@ -3974,15 +4003,17 @@ export class MemberListComponent implements OnInit {
   pagination: Pagination;
   pageNumber = 1;
   pageSize = 5;
-  constructor(private memberService: MembersService) { }
+  constructor(private memberService: MembersService) {}
   ngOnInit(): void {
     this.loadMembers();
   }
   loadMembers() {
-    this.memberService.getMembers(this.pageNumber, this.pageSize).subscribe(response => {
-      this.members = response.result;
-      this.pagination = response.pagination;
-    })
+    this.memberService
+      .getMembers(this.pageNumber, this.pageSize)
+      .subscribe((response) => {
+        this.members = response.result;
+        this.pagination = response.pagination;
+      });
   }
 }
 ```
@@ -4016,7 +4047,7 @@ import { PaginationModule } from "ngx-bootstrap/pagination";
 })
 ```
 
-- Add **pageChanged** event function in **member-list.component** 
+- Add **pageChanged** event function in **member-list.component**
 
 ```ts
 pageChanged(event: any) {
@@ -4031,11 +4062,14 @@ pageChanged(event: any) {
 <div class="d-flex justify-content-center" *ngIf="pagination">
   <pagination
     [boundaryLinks]="true"
-    [totalItems]="pagination.totalItems" [itemsPerPage]="pagination.itemsPerPage"
+    [totalItems]="pagination.totalItems"
+    [itemsPerPage]="pagination.itemsPerPage"
     [(ngModel)]="pagination.currentPage"
     (pageChanged)="pageChanged($event)"
-    previousText="&lsaquo;" nextText="&rsaquo;"
-    firstText="&laquo;" lastText="&raquo;"
+    previousText="&lsaquo;"
+    nextText="&rsaquo;"
+    firstText="&laquo;"
+    lastText="&raquo;"
   >
   </pagination>
 </div>
@@ -4079,7 +4113,7 @@ public async Task<PagedList<MemberDto>> GetMembersAsync(UserParams userParams)
 
 ### Adding Additional Parameters
 
-- Lets add min and max age to UserParams  `public int MinAge { get; set; } = 18;`  `public int MaxAge { get; set; } = 150;`
+- Lets add min and max age to UserParams `public int MinAge { get; set; } = 18;` `public int MaxAge { get; set; } = 150;`
 - Add new parameters to GetMembersAsync on **UserRepository**
 
 ```cs
@@ -4147,19 +4181,19 @@ public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
 - Create **userParams** model in client
 
 ```ts
-import { User } from './user';
+import { User } from "./user";
 
 export class UserParams {
-    gender: string;
-    minAge = 18;
-    maxAge = 99;
-    pageNumber = 1;
-    pageSize = 5;
-    orderBy = 'lastActive';
+  gender: string;
+  minAge = 18;
+  maxAge = 99;
+  pageNumber = 1;
+  pageSize = 5;
+  orderBy = "lastActive";
 
-    constructor(user: User) {
-        this.gender = user.gender === 'female' ? 'male' : 'female';
-    }
+  constructor(user: User) {
+    this.gender = user.gender === "female" ? "male" : "female";
+  }
 }
 ```
 
@@ -4173,38 +4207,51 @@ export class MembersService {
   user: User;
   userParams: UserParams;
 
-  constructor(private http: HttpClient, private accountService: AccountService) {
-    this.accountService.currentUser$.pipe(take(1)).subscribe(user => {
+  constructor(
+    private http: HttpClient,
+    private accountService: AccountService
+  ) {
+    this.accountService.currentUser$.pipe(take(1)).subscribe((user) => {
       this.user = user;
       this.userParams = new UserParams(user);
-    })
+    });
   }
-//...
+  //...
   getMembers(userParams: UserParams) {
-    let params = this.getPaginationHeaders(userParams.pageNumber, userParams.pageSize);
+    let params = this.getPaginationHeaders(
+      userParams.pageNumber,
+      userParams.pageSize
+    );
 
-    params = params.append('minAge', userParams.minAge.toString());
-    params = params.append('maxAge', userParams.maxAge.toString());
-    params = params.append('gender', userParams.gender);
+    params = params.append("minAge", userParams.minAge.toString());
+    params = params.append("maxAge", userParams.maxAge.toString());
+    params = params.append("gender", userParams.gender);
 
-    return this.getPaginatedResult<Member[]>(this.baseUrl + 'users', params);
+    return this.getPaginatedResult<Member[]>(this.baseUrl + "users", params);
   }
-//...
+  //...
   private getPaginatedResult<T>(url, params) {
     const paginatedResult: PaginatedResult<T> = new PaginatedResult<T>();
-    return this.http.get<T>(url, { observe: 'response', params }).pipe(
-      map(response => {
+    return this.http.get<T>(url, { observe: "response", params }).pipe(
+      map((response) => {
         paginatedResult.result = response.body;
-        if (response.headers.get('Pagination') !== null) {
-          paginatedResult.pagination = JSON.parse(response.headers.get('Pagination'));
+        if (response.headers.get("Pagination") !== null) {
+          paginatedResult.pagination = JSON.parse(
+            response.headers.get("Pagination")
+          );
         }
-        return paginatedResult;}));}
+        return paginatedResult;
+      })
+    );
+  }
 
   private getPaginationHeaders(pageNumber: number, pageSize: number) {
     let params = new HttpParams();
-    params = params.append('pageNumber', pageNumber.toString());
-    params = params.append('pageSize', pageSize.toString());
-    return params;}}
+    params = params.append("pageNumber", pageNumber.toString());
+    params = params.append("pageSize", pageSize.toString());
+    return params;
+  }
+}
 ```
 
 - member-list.component
@@ -4215,23 +4262,29 @@ export class MemberListComponent implements OnInit {
   pagination: Pagination;
   userParams: UserParams;
   user: User;
-  constructor(private memberService: MembersService, private accountService: AccountService) {
-      this.accountService.currentUser$.pipe(take(1)).subscribe(user=>{
-          this.user=user;
-          this.userParams=new UserParams(user);
-      })}
+  constructor(
+    private memberService: MembersService,
+    private accountService: AccountService
+  ) {
+    this.accountService.currentUser$.pipe(take(1)).subscribe((user) => {
+      this.user = user;
+      this.userParams = new UserParams(user);
+    });
+  }
   ngOnInit(): void {
     this.loadMembers();
   }
   loadMembers() {
-    this.memberService.getMembers(this.userParams).subscribe(response => {
+    this.memberService.getMembers(this.userParams).subscribe((response) => {
       this.members = response.result;
       this.pagination = response.pagination;
-    })}
+    });
+  }
   pageChanged(event: any) {
     this.userParams.pageNumber = event.page;
     this.loadMembers();
-  }}
+  }
+}
 ```
 
 ### Filter Buttons on client
@@ -4240,9 +4293,12 @@ export class MemberListComponent implements OnInit {
 
 ```ts
 export class MemberListComponent implements OnInit {
-//...
-  genderList = [{ value: 'male', display: 'Males' }, { value: 'female', display: 'Females' }];
-//...
+  //...
+  genderList = [
+    { value: "male", display: "Males" },
+    { value: "female", display: "Females" },
+  ];
+  //...
   resetFilters() {
     this.userParams = this.memberService.resetUserParams();
     this.loadMembers();
@@ -4344,7 +4400,7 @@ namespace API.Helpers
 }
 ```
 
-- Add to ApplicationServiceExtensions  `services.AddScoped<LogUserActivity>();`
+- Add to ApplicationServiceExtensions `services.AddScoped<LogUserActivity>();`
 - Filter through adding to BaseApiController `[ServiceFilter(typeof(LogUserActivity))]`
 
 ### Making the LastActive action filter more optimal
@@ -4372,26 +4428,42 @@ public static int GetUserId(this ClaimsPrincipal user)
 }
 ```
 
-- In **LogUserActivity** change username to userId   
-  `var userId = resultContext.HttpContext.User.GetUserId();` 
+- In **LogUserActivity** change username to userId  
+  `var userId = resultContext.HttpContext.User.GetUserId();`
   and change GetUserByUsernameAsync to ById
-   `var user = await repo.GetUserByIdAsync(userId);`
+  `var user = await repo.GetUserByIdAsync(userId);`
 
 ### Sorting on client
 
 - Import **ButtonsModule** from ngx-bootstrap in **shared.module.ts**
-- Add **orderBy** field to **userParams.ts** and add it to get members  `params = params.append('gender', userParams.gender);`
+- Add **orderBy** field to **userParams.ts** and add it to get members `params = params.append('gender', userParams.gender);`
 - Add sorting to view member-list
 
 ```html
- <div class="col">
-      <div class="btn-group float-right">
-        <button type="button" class="btn btn-primary" name="orderBy" (click)="loadMembers()" btnRadio="lastActive" [(ngModel)]="userParams.orderBy">Last Active
-        </button>
-        <button type="button" class="btn btn-primary" name="orderBy" (click)="loadMembers()" btnRadio="created" [(ngModel)]="userParams.orderBy">Newest Members
-        </button>
-      </div>
-    </div>
+<div class="col">
+  <div class="btn-group float-right">
+    <button
+      type="button"
+      class="btn btn-primary"
+      name="orderBy"
+      (click)="loadMembers()"
+      btnRadio="lastActive"
+      [(ngModel)]="userParams.orderBy"
+    >
+      Last Active
+    </button>
+    <button
+      type="button"
+      class="btn btn-primary"
+      name="orderBy"
+      (click)="loadMembers()"
+      btnRadio="created"
+      [(ngModel)]="userParams.orderBy"
+    >
+      Newest Members
+    </button>
+  </div>
+</div>
 ```
 
 ### Formatting Dates
@@ -4401,12 +4473,12 @@ public static int GetUserId(this ClaimsPrincipal user)
 
 ```html
 <div>
-    <strong>Last Active:</strong>
-    <p>{{ member.lastActive | timeago }}</p>
+  <strong>Last Active:</strong>
+  <p>{{ member.lastActive | timeago }}</p>
 </div>
 <div>
-    <strong>Member since:</strong>
-    <p>{{ member.created | date: "dd MMM yyyy" }}</p>
+  <strong>Member since:</strong>
+  <p>{{ member.created | date: "dd MMM yyyy" }}</p>
 </div>
 ```
 
@@ -4424,7 +4496,7 @@ export class MembersService {
     if (response) { return of(response); }
 
     let params = this.getPaginationHeaders(userParams.pageNumber, userParams.pageSize);
-      
+
     params = params.append('minAge', userParams.minAge.toString());
     params = params.append('maxAge', userParams.maxAge.toString());
     params = params.append('gender', userParams.gender);
@@ -4461,7 +4533,7 @@ getMember(username: string) {
 
 ```ts
 export class MembersService {
-    //...  
+    //...
     user: User;
     userParams: UserParams;
 
@@ -4491,7 +4563,10 @@ export class MemberListComponent implements OnInit {
   pagination: Pagination;
   userParams: UserParams;
   user: User;
-  genderList = [{ value: 'male', display: 'Males' }, { value: 'female', display: 'Females' }];
+  genderList = [
+    { value: "male", display: "Males" },
+    { value: "female", display: "Females" },
+  ];
   constructor(private memberService: MembersService) {
     this.userParams = this.memberService.getUserParams();
   }
@@ -4500,10 +4575,10 @@ export class MemberListComponent implements OnInit {
   }
   loadMembers() {
     this.memberService.setUserParams(this.userParams);
-    this.memberService.getMembers(this.userParams).subscribe(response => {
+    this.memberService.getMembers(this.userParams).subscribe((response) => {
       this.members = response.result;
       this.pagination = response.pagination;
-    })
+    });
   }
   resetFilters() {
     this.userParams = this.memberService.resetUserParams();
@@ -4574,7 +4649,7 @@ namespace API.Data
 }
 ```
 
-- Run a migration  `dotnet ef migrations add LikedEntityAdded`
+- Run a migration `dotnet ef migrations add LikedEntityAdded`
 
 ### Creating Likes Repository
 
@@ -4736,13 +4811,16 @@ namespace API.Controllers
 export class MemberCardComponent implements OnInit {
   @Input() member: Member;
 
-  constructor(private memberService: MembersService, private toastr: ToastrService) { }
+  constructor(
+    private memberService: MembersService,
+    private toastr: ToastrService
+  ) {}
 
   ngOnInit(): void {}
   addLike(member: Member) {
     this.memberService.addLike(member.username).subscribe(() => {
-      this.toastr.success('You have liked ' + member.knownAs);
-    })
+      this.toastr.success("You have liked " + member.knownAs);
+    });
   }
 }
 ```
@@ -4777,6 +4855,8 @@ case 400:
 //....
 ```
 
+<<<<<<< HEAD
+
 ### Adding the likes component
 
 - **list.component.ts**
@@ -4784,15 +4864,15 @@ case 400:
 ```ts
 export class ListsComponent implements OnInit {
   members: Partial<Member[]>;
-  predicate = 'liked';
-  constructor(private memberService: MembersService) { }
+  predicate = "liked";
+  constructor(private memberService: MembersService) {}
   ngOnInit(): void {
     this.loadLikes();
   }
   loadLikes() {
-    this.memberService.getLikes(this.predicate).subscribe(response => {
+    this.memberService.getLikes(this.predicate).subscribe((response) => {
       this.members = response;
-    })
+    });
   }
 }
 ```
@@ -4809,10 +4889,20 @@ export class ListsComponent implements OnInit {
 <div class="container mt-3">
   <div class="row">
     <div class="btn-group" name="predicate">
-      <button class="btn btn-primary" btnRadio="liked" [(ngModel)]="predicate" (click)="loadLikes()">
+      <button
+        class="btn btn-primary"
+        btnRadio="liked"
+        [(ngModel)]="predicate"
+        (click)="loadLikes()"
+      >
         Members I like
       </button>
-      <button class="btn btn-primary" btnRadio="likedBy" [(ngModel)]="predicate" (click)="loadLikes()">
+      <button
+        class="btn btn-primary"
+        btnRadio="likedBy"
+        [(ngModel)]="predicate"
+        (click)="loadLikes()"
+      >
         Members who like me
       </button>
     </div>
@@ -4861,7 +4951,7 @@ namespace API.Helpers
 ```
 
 - Update **Likes Repository interface GetUserLikes** method to return `Task<PagedList<LikeDto>>` .
-   `Task<PagedList<LikeDto>> GetUserLikes(LikesParams likesParams);`
+  `Task<PagedList<LikeDto>> GetUserLikes(LikesParams likesParams);`
 - Change **LikesRepository** GetUserLikes method
 
 ```cs
@@ -4913,7 +5003,9 @@ namespace API.Helpers
 
 ### Pagination on client
 
+=======
 
+> > > > > > > 2b2cd8c577d49302c7ae94b3857770f3cbcf800e
 
 ## 14 - Messaging Feature
 
