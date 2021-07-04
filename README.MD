@@ -4578,6 +4578,40 @@ namespace API.Data
 
 ### Creating Likes Repository
 
+- Dto
+
+```cs
+namespace API.DTOs
+{
+    public class LikeDto
+    {
+        public int Id { get; set; }
+        public string Username { get; set; }
+        public int Age { get; set; }
+        public string KnownAs { get; set; }
+        public string PhotoUrl { get; set; }
+        public string City { get; set; }
+    }
+}
+```
+
+- Interface
+
+```cs
+namespace API.Interfaces
+{
+    public interface ILikesRepository
+    {
+        Task<UserLike> GetUserLike(int sourceUserId, int likedUserId);
+        Task<AppUser> GetUsersWithLikes(int userId);
+        Task<IEnumerable<LikeDto>> GetUserLikes(string predicate, int userId);
+    }
+}
+```
+
+- Add to ApplicationServiceExtensions `services.AddScoped<ILikesRepository, LikesRepository>();`
+- Implementation in next chapter
+
 ## 14 - Messaging Feature
 
 ## 15 - Identity and Role Management
