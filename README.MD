@@ -5261,8 +5261,149 @@ namespace API.DTOs
 
 ### Creating MessageController
 
+```cs
+namespace API.Controllers
+{
+    [Authorize]
+    public class MessagesController : BaseApiController
+    {
+        private readonly IMessageRepository _messageRepository;
+        private readonly IUserRepository _userRepository;
+        private readonly IMapper _mapper;
+        public MessagesController(IUserRepository userRepository, IMessageRepository messageRepository, IMapper mapper)
+        {
+            _mapper = mapper;
+            _userRepository = userRepository;
+            _messageRepository = messageRepository;
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<MessageDto>> CreateMessage(CreateMessageDto createMessageDto)
+        {
+            var username = User.GetUsername();
+
+            if (username == createMessageDto.RecipientUsername.ToLower())
+                return BadRequest("You cannot send messages to yourself");
+
+            var sender = await _userRepository.GetUserByUsernameAsync(username);
+            var recipient = await _userRepository.GetUserByUsernameAsync(createMessageDto.RecipientUsername);
+
+            if (recipient == null) return NotFound();
+
+            var message = new Message
+            {
+                Sender = sender,
+                Recipient = recipient,
+                SenderUsername = sender.UserName,
+                RecipientUsername = recipient.UserName,
+                Content = createMessageDto.Content
+            };
+
+            _messageRepository.AddMessage(message);
+
+            if (await _messageRepository.SaveAllAsync()) return Ok(_mapper.Map<MessageDto>(message));
+
+            return BadRequest("Failed to send message");
+        }
+    }
+}
 ```
 
+### Message Controller
+
+```cs
+namespace API.Controllers
+{
+    [Authorize]
+    public class MessagesController : BaseApiController
+    {
+        private readonly IMessageRepository _messageRepository;
+        private readonly IUserRepository _userRepository;
+        private readonly IMapper _mapper;
+        public MessagesController(IUserRepository userRepository, IMessageRepository messageRepository, IMapper mapper)
+        {
+            _mapper = mapper;
+            _userRepository = userRepository;
+            _messageRepository = messageRepository;
+        }
+        [HttpPost]
+        public async Task<ActionResult<MessageDto>> CreateMessage(CreateMessageDto createMessageDto)
+        {
+            var username = User.GetUsername();
+
+            if (username == createMessageDto.RecipientUsername.ToLower())
+                return BadRequest("You cannot send messages to yourself");
+
+            var sender = await _userRepository.GetUserByUsernameAsync(username);
+            var recipient = await _userRepository.GetUserByUsernameAsync(createMessageDto.RecipientUsername);
+
+            if (recipient == null) return NotFound();
+
+            var message = new Message
+            {
+                Sender = sender,
+                Recipient = recipient,
+                SenderUsername = sender.UserName,
+                RecipientUsername = recipient.UserName,
+                Content = createMessageDto.Content
+            };
+
+            _messageRepository.AddMessage(message);
+
+            if (await _messageRepository.SaveAllAsync()) return Ok(_mapper.Map<MessageDto>(message));
+
+            return BadRequest("Failed to send message");
+        }
+    }
+}
+```
+
+### Getting the messages from the repo
+
+- Created **MessageParams**
+
+```cs
+namespace API.Helpers
+{
+    public class MessageParams : PaginationParams
+    {
+        public string Username { get; set; }
+        public string Container { get; set; } = "Undefined";
+    }
+}
+```
+
+- Updated **GetMessagesForUser in Message Repository Interface**  `Task<PagedList<MessageDto>> GetMessagesForUser(MessageParams messageParams);`
+- Implementation in **MessageRepository**
+
+```cs
+public async Task<PagedList<MessageDto>> GetMessagesForUser(MessageParams messageParams)
+{
+    var query = _context.Messages
+        .OrderByDescending(m => m.MessageSent)
+        .AsQueryable();
+    query = messageParams.Container switch
+    {
+            "Inbox" => query.Where(u => u.Recipient.UserName == messageParams.Username),
+            "Outbox" => query.Where(u => u.Sender.UserName == messageParams.Username),
+            _ => query.Where(u => u.Recipient.UserName == messageParams.Username && u.DateRead == null)
+    };
+    var messages = query.ProjectTo<MessageDto>(_mapper.ConfigurationProvider);
+    return await PagedList<MessageDto>.CreateAsync(messages, messageParams.PageNumber, messageParams.PageSize);
+}
+```
+
+- Endpoint in controller
+
+```cs
+[HttpGet]
+public async Task<ActionResult<IEnumerable<MessageDto>>> GetMessagesForUser([FromQuery] MessageParams messageParams)
+{
+    messageParams.Username = User.GetUsername();
+    var messages = await _messageRepository.GetMessagesForUser(messageParams);
+    Response.AddPaginationHeader(messages.CurrentPage, messages.PageSize, messages.TotalCount, messages.TotalPages);
+    return messages;
+}
 ```
 
 

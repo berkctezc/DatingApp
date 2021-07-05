@@ -2,7 +2,7 @@
   <h2>Your matches - {{ pagination?.totalItems }} found</h2>
 </div>
 
-<div class="container mt-3">
+<div class="container mt-3 row">
   <form
     #form="ngForm"
     class="form-inline mb-3"
@@ -13,25 +13,19 @@
       <label>Age from: </label>
       <input
         type="number"
-        class="form-control ml-1"
-        style="width: 70px"
+        class="form-control"
+        style="width: 150px"
         name="minAge"
         [(ngModel)]="userParams.minAge"
       />
-    </div>
-
-    <div class="form-group px-2">
       <label>Age to: </label>
       <input
         type="number"
-        class="form-control ml-1"
-        style="width: 70px"
+        class="form-control"
+        style="width: 150px"
         name="maxAge"
         [(ngModel)]="userParams.maxAge"
       />
-    </div>
-
-    <div class="form-group px-2">
       <label>Show: </label>
       <select
         name="gender"
@@ -45,7 +39,9 @@
       </select>
     </div>
 
-    <button class="btn btn-primary ml-1" type="submit">Apply Filters</button>
+    <button (click)="loadMembers()" class="btn btn-primary ml-1" type="submit">
+      Apply Filters
+    </button>
     <button (click)="resetFilters()" class="btn btn-info ml-1" type="submit">
       Reset Filters
     </button>
