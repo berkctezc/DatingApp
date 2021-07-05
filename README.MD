@@ -5259,6 +5259,12 @@ namespace API.DTOs
 }
 ```
 
+### Creating MessageController
+
+```
+
+```
+
 
 
 ## 15 - Identity and Role Management
