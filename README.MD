@@ -5406,7 +5406,48 @@ public async Task<ActionResult<IEnumerable<MessageDto>>> GetMessagesForUser([Fro
 }
 ```
 
+### Getting the message thread between two users
 
+- In interface `Task<IEnumerable<MessageDto>> GetMessageThread(string currentUsername, string recipientUsername);`
+- Implementation 
+
+```cs
+ public async Task<IEnumerable<MessageDto>> GetMessageThread(string currentUsername, string recipientUsername)
+        {
+            var messages = await _context.Messages
+                .Include(u => u.Sender).ThenInclude(p => p.Photos)
+                .Include(u => u.Recipient).ThenInclude(p => p.Photos)
+                .Where(m => m.Recipient.UserName == currentUsername
+                            && m.Sender.UserName == recipientUsername
+                            || m.Recipient.UserName == recipientUsername
+                            && m.Sender.UserName == currentUsername
+                            )
+                            .OrderBy(m => m.MessageSent)
+                            .ToListAsync();
+            var unreadMessages = messages
+                .Where(m => m.DateRead == null
+                    && m.Recipient.UserName == currentUsername).ToList();
+            if (unreadMessages.Any()){
+                foreach (var message in unreadMessages){
+                    message.DateRead = DateTime.Now;
+                }
+                await _context.SaveChangesAsync();
+            }
+            return _mapper.Map<IEnumerable<MessageDto>>(messages);
+        }
+```
+
+- Controller Endpoint
+
+```cs
+        [HttpGet("thread/{username}")]
+        public async Task<ActionResult<IEnumerable<MessageDto>>> GetMessageThread(string username)
+        {
+            var currentUsername = User.GetUsername();
+
+            return Ok(await _messageRepository.GetMessageThread(currentUsername, username));
+        }
+```
 
 ## 15 - Identity and Role Management
 
