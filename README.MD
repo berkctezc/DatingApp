@@ -5444,10 +5444,135 @@ public async Task<ActionResult<IEnumerable<MessageDto>>> GetMessagesForUser([Fro
         public async Task<ActionResult<IEnumerable<MessageDto>>> GetMessageThread(string username)
         {
             var currentUsername = User.GetUsername();
-
             return Ok(await _messageRepository.GetMessageThread(currentUsername, username));
         }
 ```
+
+### Setting up the Angular app for messaging
+
+- create message model
+
+```ts
+export interface Message {
+    id: number;
+    senderId: number;
+    senderUsername: string;
+    senderPhotoUrl: string;
+    recipientId: number;
+    recipientUsername: string;
+    recipientPhotoUrl: string;
+    content: string;
+    dateRead: Date;
+    messageSent: Date;
+}
+```
+
+- generate message service in _services
+
+```ts
+export class MessageService {
+  baseUrl = environment.apiUrl;
+
+  constructor(private http: HttpClient) { }
+
+  getMessages(pageNumber, pageSize, container) {
+    let params = getPaginationHeaders(pageNumber, pageSize);
+    params = params.append('Container', container);
+    return getPaginatedResult<Message[]>(this.baseUrl + 'messages', params, this.http);
+  }
+}
+```
+
+- moved and configured common functions from members service to **paginationHelper.ts** file to use in message service also.
+
+```ts
+export function getPaginatedResult<T>(url, params, http: HttpClient) {
+  const paginatedResult: PaginatedResult<T> = new PaginatedResult<T>();
+  return http.get<T>(url, { observe: 'response', params }).pipe(
+    map(response => {
+      paginatedResult.result = response.body;
+      if (response.headers.get('Pagination') !== null) {
+        paginatedResult.pagination = JSON.parse(response.headers.get('Pagination'));
+      }
+      return paginatedResult;
+    })
+  );
+}
+
+export function getPaginationHeaders(pageNumber: number, pageSize: number) {
+  let params = new HttpParams();
+
+  params = params.append('pageNumber', pageNumber.toString());
+  params = params.append('pageSize', pageSize.toString());
+
+  return params;
+}
+```
+
+- members service updates
+
+```ts
+export class MembersService {
+ //...
+  getMembers(userParams: UserParams) {
+    var response = this.memberCache.get(Object.values(userParams).join('-'));
+    if (response) {
+      return of(response);
+    }
+
+    let params = getPaginationHeaders(userParams.pageNumber, userParams.pageSize);
+
+    params = params.append('minAge', userParams.minAge.toString());
+    params = params.append('maxAge', userParams.maxAge.toString());
+    params = params.append('gender', userParams.gender);
+    params = params.append('orderBy', userParams.orderBy);
+
+    return getPaginatedResult<Member[]>(this.baseUrl + 'users', params, this.http)
+      .pipe(map(response => {
+        this.memberCache.set(Object.values(userParams).join('-'), response);
+        return response;
+      }))
+  }
+//...
+  getLikes(predicate: string, pageNumber, pageSize) {
+    let params = getPaginationHeaders(pageNumber, pageSize);
+    params = params.append('predicate', predicate);
+    return getPaginatedResult<Partial<Member[]>>(this.baseUrl + 'likes', params, this.http);
+  }
+}
+```
+
+- Configured **messages.component.ts**
+
+```ts
+export class MessagesComponent implements OnInit {
+  messages: Message[];
+  pagination: Pagination;
+  container = 'Unread';
+  pageNumber = 1;
+  pageSize = 5;
+    
+  constructor(private messageService: MessageService) { }
+  
+    ngOnInit(): void {
+    this.loadMessages();
+  }
+  loadMessages() {
+    this.messageService.getMessages(this.pageNumber, this.pageSize, this.container).subscribe(response => {
+      this.messages = response.result;
+      this.pagination = response.pagination;
+    })
+  }
+  pageChanged(event: any) {
+    this.pageNumber = event.page;
+    this.loadMessages();
+  }
+}
+```
+
+- And finally in view `<p *ngFor="let message of messages"><b>Message: </b>{{ message?.content }}</p>`
+
+
 
 ## 15 - Identity and Role Management
 
