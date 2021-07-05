@@ -5572,7 +5572,164 @@ export class MessagesComponent implements OnInit {
 
 - And finally in view `<p *ngFor="let message of messages"><b>Message: </b>{{ message?.content }}</p>`
 
+### Designing the inbox
 
+```html
+<div class="row mb-4">
+  <div class="btn-group" name="container">
+    <button
+      class="btn btn-primary"
+      btnRadio="Unread"
+      [(ngModel)]="container"
+      (click)="loadMessages()"
+    >
+      <i class="fa fa-envelope"></i> Unread
+    </button>
+    <button
+      class="btn btn-primary"
+      btnRadio="Inbox"
+      [(ngModel)]="container"
+      (click)="loadMessages()"
+    >
+      <i class="fa fa-envelope-open"></i> Inbox
+    </button>
+    <button
+      class="btn btn-primary"
+      btnRadio="Outbox"
+      [(ngModel)]="container"
+      (click)="loadMessages()"
+    >
+      <i class="fa fa-paper-plane"></i> Outbox
+    </button>
+  </div>
+</div>
+
+<div class="row" *ngIf="messages?.length === 0">
+  <h3>No messages</h3>
+</div>
+
+<div class="row" *ngIf="messages?.length > 0">
+  <table class="table table-hover" style="cursor: pointer">
+    <tr>
+      <th style="width: 40%">Message</th>
+      <th style="width: 20%">From / To</th>
+      <th style="width: 20%">Sent / Received</th>
+      <th style="width: 20%"></th>
+    </tr>
+    <tr
+      [hidden]="loading"
+      *ngFor="let message of messages"
+      routerLink="{{
+        container === 'Outbox'
+          ? '/members/' + message.recipientUsername
+          : '/members/' + message.senderUsername
+      }}"
+      [queryParams]="{ tab: 3 }"
+    >
+      <td>{{ message.content }}</td>
+      <td>
+        <div *ngIf="container === 'Outbox'">
+          <img
+            class="img-circle rounded-circle mr-2"
+            src="{{ message.recipientPhotoUrl || './assets.user.png' }}"
+            alt="{{ message.recipientUsername }}"
+          />
+          <strong>{{ message.recipientUsername | titlecase }}</strong>
+        </div>
+        <div *ngIf="container !== 'Outbox'">
+          <img
+            class="img-circle rounded-circle mr-2"
+            src="{{ message.senderPhotoUrl || './assets.user.png' }}"
+            alt="{{ message.senderUsername }}"
+          />
+          <strong>{{ message.senderUsername | titlecase }}</strong>
+        </div>
+      </td>
+      <td>{{ message.messageSent | timeago }}</td>
+      <td>
+        <button
+          class="btn btn-danger"
+        >
+          Delete
+        </button>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<div class="d-flex justify-content-center" *ngIf="pagination && !loading">
+  <pagination
+    [boundaryLinks]="true"
+    [totalItems]="pagination.totalItems"
+    [itemsPerPage]="pagination.itemsPerPage"
+    [(ngModel)]="pagination.currentPage"
+    (pageChanged)="pageChanged($event)"
+    previousText="&lsaquo;"
+    nextText="&rsaquo;"
+    firstText="&laquo;"
+    lastText="&raquo;"
+  >
+  </pagination>
+</div>
+```
+
+### Adding the message thread in the client
+
+- In **message.service.ts** implement **getMessageThread** to make a get request to the API
+
+```ts
+  getMessageThread(username: string) {
+    return this.http.get<Message[]>(this.baseUrl + 'messages/thread/' + username);
+  }
+```
+
+- Generate **member-messages** component in /members
+
+```ts
+export class MemberMessagesComponent implements OnInit {
+  @ViewChild('messageForm') messageForm: NgForm;
+  @Input() messages: Message[];
+  @Input() username: string;
+  messageContent: string;
+
+  constructor(private messageService: MessageService) { }
+
+  ngOnInit(): void {  }
+
+  sendMessage() {
+    this.messageService.sendMessage(this.username, this.messageContent).subscribe(message => {
+      this.messages.push(message);
+      this.messageForm.reset();
+    })
+  }
+}
+```
+
+```html
+<p *ngFor="let message of messages">{{message?.content}}</p>
+```
+
+- And in member-detail component pass username parameter 
+
+```html
+ <app-member-messages [username]="member.username"></app-member-messages>
+```
+
+### Styling the message thread
+
+### Activating the message tab
+
+### Using query params
+
+### Using route resolvers
+
+### Sending messages
+
+### Fixing the photo weirdness
+
+### Deleting messages on the API
+
+### Deleting messages on the client
 
 ## 15 - Identity and Role Management
 
