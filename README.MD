@@ -5624,7 +5624,6 @@ export class MessagesComponent implements OnInit {
           ? '/members/' + message.recipientUsername
           : '/members/' + message.senderUsername
       }}"
-      [queryParams]="{ tab: 3 }"
     >
       <td>{{ message.content }}</td>
       <td>
@@ -5717,19 +5716,256 @@ export class MemberMessagesComponent implements OnInit {
 
 ### Styling the message thread
 
+- **member-messages.component.html**
+
+```html
+<div class="card">
+  <div class="card-body">
+    <div *ngIf="messages?.length === 0">
+      No messages yet... say hi by using the message box below
+    </div>
+    <ul *ngIf="messages?.length > 0" class="chat">
+      <li *ngFor="let message of messages">
+        <div>
+          <span class="chat-img float-right">
+            <img class="rounded-circle" src="{{ message.senderPhotoUrl || './assets/user.png' }}"
+              alt="{{ message.senderUsername }}" />
+          </span>
+          <div class="chat-body">
+            <div class="header">
+              <small class="text-muted">
+                <span class="fa fa-clock-o">{{
+                  message.messageSent | timeago
+                }}</span>
+                <span class="text-danger" *ngIf="
+                    !message.dateRead && message.senderUsername !== username
+                  ">
+                  (unread)
+                </span>
+                <span class="text-success" *ngIf="
+                    message.dateRead && message.senderUsername !== username
+                  ">
+                  (read {{ message.dateRead | timeago }})
+                </span>
+              </small>
+            </div>
+            <p>{{ message.content }}</p>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <div class="card-footer">
+    <form #messageForm="ngForm" (ngSubmit)="sendMessage()" autocomplete="off">
+      <div class="input-group">
+        <input name="messageContent" required [(ngModel)]="messageContent" type="text" class="form-control input-sm"
+          placeholder="Send a private message" />
+        <div class="input-group-append">
+          <button [disabled]="!messageForm.valid" class="btn btn-primary" type="submit">
+            Send
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+```
+
+- css
+
+```css
+.card {
+  border: none;
+}
+.chat {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.chat li {
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px dotted #B3A9A9;
+}
+.rounded-circle {
+  max-height: 50px;
+}
+```
+
 ### Activating the message tab
+
+- add template reference variable to **member-detail.component** html and ts
+
+```html
+  <div class="col-8">
+    <tabset class="member-tabset" #memberTabs>
+      <!---///...-->
+```
+
+```ts
+export class MemberDetailComponent implements OnInit {
+    //...
+    @ViewChild('memberTabs', { static: true }) memberTabs: TabsetComponent;
+    //...
+    activeTab: TabDirective;
+    messages:Message[]=[]; // also add this initialization to messages.component
+
+    //...
+      loadMessages() {
+    this.messageService.getMessageThread(this.member.username).subscribe(messages => {
+      this.messages = messages;
+    })
+  }   
+    onTabActivated(data: TabDirective) {
+        this.activeTab = data;
+        if (this.activeTab.heading === 'Messages' && this.messages.length === 0) {
+            this.loadMessages();
+        }
+    }
+}
+```
+
+- cleanup **member-messages.component** and pass message input
+
+```ts
+export class MemberMessagesComponent implements OnInit {
+  @Input() messages: Message[];
+
+  constructor() { }
+
+  ngOnInit(): void { }
+}
+```
+
+- pass messages as input in **member-detail.component.html**
+
+```html
+<tab heading="Messages">
+    <app-member-messages [messages]="messages"></app-member-messages>
+</tab>
+```
+
+- Add (selectTab)="onTabActivated($event)" to tab headings like  **`<tab heading="Interests" (selectTab)="onTabActivated($event)">`**
 
 ### Using query params
 
+- Add selectTab method to **member-detail.component** to access message tab through other places
+
+```cs
+selectTab(tabId: number) {
+    this.memberTabs.tabs[tabId].active = true;
+}
+```
+
+- Add click event to **member-detail** message button
+
+```html
+<button (click)="selectTab(3)" class="btn btn-success">
+    Message
+</button>
+```
+
+- Access through member-list or other places. Add router link to **member-card.component.html**
+
+```html
+<button
+        routerLink="/members/{{ member.username }}"
+        [queryParams]="{ tab: 3 }"
+        class="btn btn-primary"
+        >
+    <i class="fa fa-envelope"></i>
+</button>
+```
+
+- Add queryParams to **messages.component.html** make redirection from inbox to messages tab too
+
+```html
+    <tr
+      [hidden]="loading"
+      *ngFor="let message of messages"
+      routerLink="{{
+        container === 'Outbox'
+          ? '/members/' + message.recipientUsername
+          : '/members/' + message.senderUsername
+      }}"
+      [queryParams]="{ tab: 3 }"
+    >
+```
+
+- **member-detail.component.ts**
+
+```ts
+ngOnInit(): void {
+    //...
+    this.route.queryParams.subscribe(params => {
+    params.tab ? this.selectTab(params.tab) : this.selectTab(0);
+})
+//...
+}
+```
+
+- But it doesn't work right away because these tabs are in a ngIf conditional and undefined in this state.
+- We need to make ViewChild membertabs static
+
+```ts
+  @ViewChild('memberTabs', { static: true }) memberTabs: TabsetComponent;
+```
+
+- Still not working. only if we **remove ngIf** it becomes usable but it creates whole kinds of other problems. Lets solve it via using route resolvers in the next chapter.
+
 ### Using route resolvers
+
+- Create a _resolvers directory and create a resolver named **member-detailed.resolver.ts**
+
+```ts
+@Injectable({
+    providedIn: 'root'
+})
+export class MemberDetailedResolver implements Resolve<Member> {
+
+    constructor(private memberService: MembersService) { }
+
+    resolve(route: ActivatedRouteSnapshot): Observable<Member> {
+        return this.memberService.getMember(route.paramMap.get('username'));
+    }
+}
+```
+
+- Update **app-routing.module**
+
+```ts
+ { path: 'members/:username', component: MemberDetailComponent, resolve: { member: MemberDetailedResolver } },
+```
+
+- In member-detail change loading members to getting from root. remove loadMember from member-detail
+
+```ts
+ngOnInit(): void {
+    this.route.data.subscribe(data => {
+    this.member = data.member;
+})
+//...
+this.galleryImages = this.getImages();
+}
+```
 
 ### Sending messages
 
+
+
 ### Fixing the photo weirdness
+
+
 
 ### Deleting messages on the API
 
+
+
 ### Deleting messages on the client
+
+
 
 ## 15 - Identity and Role Management
 
