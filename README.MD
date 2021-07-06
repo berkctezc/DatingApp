@@ -84,17 +84,15 @@ dotnet run
 - add to services in **ConfigureServices** >
 
   ```cs
-  services.AddDbContext<DataContext>(options=>{   options.UseSqlite("Connection String");});
+  services.AddDbContext<DataContext>(options=>{options.UseSqlite("Connection String");});
   ```
 
 - add connection string to appsettings.Development.json
 
   ```cs
-     "ConnectionStrings": {
-        "DefaultConnection":"Data source=datingapp.db"
-     },
+     "ConnectionStrings": {"DefaultConnection":"Data source=datingapp.db"},
   ```
-
+  
 - use it in Startup.cs
 
 ```cs
@@ -105,7 +103,6 @@ dotnet run
             _config = config;
         }
 // ...
-// ...
 public void ConfigureServices(IServiceCollection services){
             services.AddDbContext<DataContext>(options =>
             {                options.UseSqlite(_config.GetConnectionString("DefaultConnection"));
@@ -115,22 +112,22 @@ public void ConfigureServices(IServiceCollection services){
 
 - **install dotnet-ef in cli **=>
 
-  ```bash
-  dotnet tool install --global dotnet-ef # you can specify a version by --version
-  ```
+```bash
+dotnet tool install --global dotnet-ef # you can specify a version by --version
+```
 
 - install **EntityFrameworkCore.Design** to API project with NuGet gallery
 
 - Create a migration
 
-  ```bash
-  dotnet ef migrations add InitialCreate -o Data/Migrations # -o specifies directory
-  ```
+```bash
+dotnet ef migrations add InitialCreate -o Data/Migrations # -o specifies directory
+```
 
 - Update database
 
 ```bash
- dotnet ef database update
+dotnet ef database update
 ```
 
 - Use sqlite extension to take a look at the sqlite db with F1: SQLite open database
@@ -5953,17 +5950,228 @@ this.galleryImages = this.getImages();
 
 ### Sending messages
 
+- Add **sendMessage** to **message.service**
 
+```ts
+  sendMessage(username: string, content: string) {
+    return this.http.post<Message>(this.baseUrl + 'messages', { recipientUsername: username, content })
+  }
+```
+
+- Add **sendMessage** to **member-messages.component**
+
+```ts
+export class MemberMessagesComponent implements OnInit {
+  @ViewChild('messageForm') messageForm: NgForm;
+  @Input() messages: Message[];
+  @Input() username: string;
+  messageContent: string;
+
+  constructor(private messageService: MessageService) { }
+
+  ngOnInit(): void { }
+
+  sendMessage() {
+    this.messageService.sendMessage(this.username, this.messageContent).subscribe(message => {
+      this.messages.push(message);
+      this.messageForm.reset();
+    })
+  }
+}
+```
+
+- pass input username in **member-detail** view 
+
+```html
+<app-member-messages [messages]="messages" [username]="member.username"></app-member-messages>
+```
+
+- **member-message.component** messaging form
+
+```html
+<div class="card-footer">
+    <form #messageForm="ngForm" (ngSubmit)="sendMessage()" autocomplete="off">
+      <div class="input-group">
+        <input
+          name="messageContent"
+          required
+          [(ngModel)]="messageContent"
+          type="text"
+          class="form-control input-sm"
+          placeholder="Send a private message"
+        />
+        <div class="input-group-append">
+          <button
+            [disabled]="!messageForm.valid"
+            class="btn btn-primary"
+            type="submit"
+          >Send
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+```
 
 ### Fixing the photo weirdness
 
+- **messages.component.ts**
 
+```ts
+export class MessagesComponent implements OnInit {
+  messages: Message[] = [];
+  pagination: Pagination;
+  container = 'Unread';
+  pageNumber = 1;
+  pageSize = 5;
+  loading = false;
+
+  constructor(private messageService: MessageService) { }
+
+  ngOnInit(): void {
+    this.loadMessages();
+  }
+
+  loadMessages() {
+    this.loading = true;
+    this.messageService.getMessages(this.pageNumber, this.pageSize, this.container).subscribe(response => {
+      this.messages = response.result;
+      this.pagination = response.pagination;
+      this.loading = false;
+    })
+  }
+//...
+}
+```
+
+- **messages.component.html** add `[hidden]="loading"` to messages for loop
 
 ### Deleting messages on the API
 
+- Create endpoint in **MessagesController.cs**
 
+```cs
+[HttpDelete("{id}")]
+public async Task<ActionResult> DeleteMessage(int id)
+{
+    var username = User.GetUsername();
+
+    var message = await _messageRepository.GetMessage(id);
+
+    if (message.Sender.UserName != username && message.Recipient.UserName != username)
+        return Unauthorized();
+
+    if (message.Sender.UserName == username) message.SenderDeleted = true;
+
+    if (message.Recipient.UserName == username) message.RecipientDeleted = true;
+
+    if (message.SenderDeleted && message.RecipientDeleted)
+        _messageRepository.DeleteMessage(message);
+
+    if (await _messageRepository.SaveAllAsync()) return Ok();
+
+    return BadRequest("Problem deleting the message");
+}
+```
+
+- Update **MessageRepository.cs** to not display messages if both sender and receiever deleted the message
+
+```cs
+public async Task<PagedList<MessageDto>> GetMessagesForUser(MessageParams messageParams)
+{
+    var query = _context.Messages
+        .OrderByDescending(m => m.MessageSent)
+        .AsQueryable();
+
+    query = messageParams.Container switch
+    {
+        "Inbox" => query.Where(u => u.Recipient.UserName == messageParams.Username
+       		 && u.RecipientDeleted == false),
+        "Outbox" => query.Where(u => u.Sender.UserName == messageParams.Username
+       		 && u.SenderDeleted == false),
+        _ => query.Where(u => u.Recipient.UserName ==
+        	messageParams.Username && u.RecipientDeleted == false && u.DateRead == null)
+    };
+
+    var messages = query.ProjectTo<MessageDto>(_mapper.ConfigurationProvider);
+
+    return await PagedList<MessageDto>.CreateAsync(messages, messageParams.PageNumber, messageParams.PageSize);
+}
+//...
+public async Task<IEnumerable<MessageDto>> GetMessageThread(string currentUsername,
+                                                            string recipientUsername)
+{
+    var messages = await _context.Messages
+        .Include(u => u.Sender).ThenInclude(p => p.Photos)
+        .Include(u => u.Recipient).ThenInclude(p => p.Photos)
+        .Where(m => m.Recipient.UserName == currentUsername && m.RecipientDeleted == false
+               && m.Sender.UserName == recipientUsername
+               || m.Recipient.UserName == recipientUsername
+               && m.Sender.UserName == currentUsername && m.SenderDeleted == false
+              )
+        .OrderBy(m => m.MessageSent)
+        .ToListAsync();
+
+    var unreadMessages = messages.Where(m => m.DateRead == null
+                                        && m.Recipient.UserName == currentUsername).ToList();
+
+    if (unreadMessages.Any())
+    {
+        foreach (var message in unreadMessages)
+        {
+            message.DateRead = DateTime.Now;
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
+    return _mapper.Map<IEnumerable<MessageDto>>(messages);
+}
+```
 
 ### Deleting messages on the client
+
+- **deleteMessage** on **message.service**
+
+```ts
+deleteMessage(id: number) {
+    return this.http.delete(this.baseUrl + 'messages/' + id);
+}
+```
+
+- **deleteMessage** on **messages.component**
+
+```cs
+deleteMessage(id: number) {
+    this.messageService.deleteMessage(id).subscribe(() => {
+        this.messages.splice(this.messages.findIndex(m => m.id === id), 1);
+    })
+}
+```
+
+- Add click event for the delete button
+
+```html
+<button
+        (click)="$event.stopPropagation()"
+        (click)="deleteMessage(message.id)"
+        class="btn btn-danger"
+        >  
+    Delete
+</button>
+```
+
+- Update MessageRepository GetMessage to include recipient and recipient
+
+```cs
+public async Task<Message> GetMessage(int id)
+{
+    return await _context.Messages
+        .Include(u => u.Sender)
+        .Include(u => u.Recipient)
+        .SingleOrDefaultAsync(x => x.Id == id);
+}
+```
 
 
 
