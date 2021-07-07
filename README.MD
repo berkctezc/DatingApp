@@ -6173,9 +6173,28 @@ public async Task<Message> GetMessage(int id)
 }
 ```
 
-
-
 ## 15 - Identity and Role Management
+
+### Setting up the entities
+
+- Make **AppUser** inherit from `IdentityUser<int>` and remove id, pass salt and pass hash because from now on they are coming from **IdentityUser** of .Net
+- Created **AppRole** and **AppUserRole** classes for relations
+
+```cs
+namespace API.Entities
+{
+    public class AppRole : IdentityRole<int>
+    {
+        public ICollection<AppUserRole> UserRoles { get; set; }
+    }
+    public class AppRole : IdentityRole<int>
+    {
+        public ICollection<AppUserRole> UserRoles { get; set; }
+    }
+}
+```
+
+
 
 ## 16 - SignalR
 
