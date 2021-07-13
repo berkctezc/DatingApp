@@ -6194,6 +6194,34 @@ namespace API.Entities
 }
 ```
 
+### Configuring the DbContext
+
+- Change DbContext to IdentityDbContext on DataContext of entity framework and install Microsoft.AspNetCore.Identity.EntityFrameworkCore package from nuget
+- DataContext implements 
+
+```cs
+IdentityDbContext<AppUser, AppRole, int,
+     IdentityUserClaim<int>, AppUserRole, IdentityUserLogin<int>,
+      IdentityRoleClaim<int>, IdentityUserToken<int>>
+```
+
+- Removed users DbSet because Identity got it
+- Relations of AppUser and AppRole
+
+```cs
+builder.Entity<AppUser>()
+    .HasMany(ur => ur.UserRoles)
+    .WithOne(u => u.User)
+    .HasForeignKey(ur => ur.UserId)
+    .IsRequired();
+
+builder.Entity<AppRole>()
+    .HasMany(ur => ur.UserRoles)
+    .WithOne(u => u.Role)
+    .HasForeignKey(ur => ur.RoleId)
+    .IsRequired();
+```
+
 
 
 ## 16 - SignalR
