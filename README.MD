@@ -6222,6 +6222,14 @@ builder.Entity<AppRole>()
     .IsRequired();
 ```
 
+- Configuring the Startup class
+- In IdentityServiceExtensions
+
+```cs
+services.AddIdentityCore<AppUser>(opt =>{opt.Password.RequireNonAlphanumeric = false;
+}).AddRoles<AppRole>().AddRoleManager<RoleManager<AppRole>>().AddSignInManager<SignInManager<AppUser>>().AddRoleValidator<RoleValidator<AppRole>>().AddEntityFrameworkStores<DataContext>();
+```
+
 
 
 ## 16 - SignalR
