@@ -6230,7 +6230,11 @@ services.AddIdentityCore<AppUser>(opt =>{opt.Password.RequireNonAlphanumeric = f
 }).AddRoles<AppRole>().AddRoleManager<RoleManager<AppRole>>().AddSignInManager<SignInManager<AppUser>>().AddRoleValidator<RoleValidator<AppRole>>().AddEntityFrameworkStores<DataContext>();
 ```
 
+### Refactoring and adding new migration
 
+- Added migration `dotnet ef migrations add IdentityAdded`
+- Commented seed command on program.cs because it is outdated and doesnt match with our current database
+- run the app and check the 
 
 ## 16 - SignalR
 
