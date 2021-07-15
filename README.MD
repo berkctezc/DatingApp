@@ -6233,8 +6233,8 @@ services.AddIdentityCore<AppUser>(opt =>{opt.Password.RequireNonAlphanumeric = f
 ### Refactoring and adding new migration
 
 - Added migration `dotnet ef migrations add IdentityAdded`
-- Commented seed command on program.cs because it is outdated and doesnt match with our current database
-- run the app and check the 
+- Commented seed command on Program.cs because it is outdated and doesn't match with our current database
+- run the app and check the migrated results
 
 ## 16 - SignalR
 
