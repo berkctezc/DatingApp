@@ -6226,8 +6226,7 @@ builder.Entity<AppRole>()
 - In IdentityServiceExtensions
 
 ```cs
-services.AddIdentityCore<AppUser>(opt =>{opt.Password.RequireNonAlphanumeric = false;
-}).AddRoles<AppRole>().AddRoleManager<RoleManager<AppRole>>().AddSignInManager<SignInManager<AppUser>>().AddRoleValidator<RoleValidator<AppRole>>().AddEntityFrameworkStores<DataContext>();
+services.AddIdentityCore<AppUser>(opt =>{opt.Password.RequireNonAlphanumeric = false;}).AddRoles<AppRole>().AddRoleManager<RoleManager<AppRole>>().AddSignInManager<SignInManager<AppUser>>().AddRoleValidator<RoleValidator<AppRole>>().AddEntityFrameworkStores<DataContext>();
 ```
 
 ### Refactoring and adding new migration
@@ -6238,7 +6237,47 @@ services.AddIdentityCore<AppUser>(opt =>{opt.Password.RequireNonAlphanumeric = f
 
 ### Updating the Seed method
 
-- 
+- Update Seed.cs
+
+```cs
+public static async Task SeedUsers(UserManager<AppUser> userManager)
+{
+    if (await userManager.Users.AnyAsync()) return;
+    var userData = await System.IO.File.ReadAllTextAsync("Data/UserSeedData.json");
+    var users = JsonSerializer.Deserialize<List<AppUser>>(userData);
+    if (users == null) return;
+    foreach (var user in users)
+    {
+        user.UserName = user.UserName.ToLower();
+        await userManager.CreateAsync(user, "Pa$$w0rd");
+    }
+```
+
+- Update Program.cs
+
+```cs
+//...
+public class Program
+{
+    public static async Task Main(string[] args)
+    {
+        var host = CreateHostBuilder(args).Build();
+        using var scope = host.Services.CreateScope();
+        var services = scope.ServiceProvider;
+        try 
+        {
+            var context = services.GetRequiredService<DataContext>();
+            var userManager = services.GetRequiredService<UserManager<AppUser>>();
+            await context.Database.MigrateAsync();
+            await Seed.SeedUsers(userManager);
+        }
+        catch (Exception ex)
+            //...
+            //...
+```
+
+- Drop db
+- dotnet run to apply changes and migration
 
 ## 16 - SignalR
 
