@@ -6486,7 +6486,33 @@ public class TokenService : ITokenService
     }
 ```
 
+### Adding policy based Authorization
 
+- Create AdminController for demonstration
+
+```cs
+[Route("api/[controller]")]
+[ApiController]
+public class AdminController : ControllerBase
+{
+    [Authorize(Policy = "RequireAdminRole")]
+    [HttpGet("users-with-roles")]
+    public ActionResult GetUsersWithRoles()=>return Ok("Only admins can see this");
+    [Authorize(Policy = "ModeratePhotoRole")]
+    [HttpGet("photos-to-moderate")]
+    public ActionResult GetPhotosForModeration()=>return Ok("Admins or moderators can see this");
+}
+```
+
+- Fill Policies in IdentityServiceExtensions by adding AddAuthorization service
+
+```cs
+services.AddAuthorization(opt =>
+{
+    opt.AddPolicy("RequireAdminRole",policy=>policy.RequireRole("Admin"));
+    opt.AddPolicy("ModeratePhotoRole",policy=>policy.RequireRole("Admin","Moderator"));
+});
+```
 
 ## 16 - SignalR
 
