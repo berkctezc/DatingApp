@@ -6236,6 +6236,10 @@ services.AddIdentityCore<AppUser>(opt =>{opt.Password.RequireNonAlphanumeric = f
 - Commented seed command on Program.cs because it is outdated and doesn't match with our current database
 - run the app and check the migrated results
 
+### Updating the Seed method
+
+- 
+
 ## 16 - SignalR
 
 ## 17 - Unit of Work Pattern
