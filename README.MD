@@ -6390,6 +6390,104 @@ public static async Task SeedUsers(UserManager<AppUser> userManager, RoleManager
 - Create a instance of RoleManager like UserManager and add to seed methods parameters
 - Drop db and run seed again
 
+### Adding the roles to the JWT token
+
+- Token Service
+
+```cs
+public class TokenService : ITokenService
+    {
+        private readonly UserManager<AppUser> _userManager;
+        private readonly SymmetricSecurityKey _key; 
+        public TokenService(IConfiguration config, UserManager<AppUser> userManager)
+        {
+            _userManager = userManager;
+            _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"]));
+        }
+        public async Task<string> CreateToken(AppUser user)
+        {
+            var claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName),
+            };
+            var roles = await _userManager.GetRolesAsync(user);
+            claims.AddRange(roles.Select(role=>new Claim(ClaimTypes.Role,role)));
+            var creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.Now.AddDays(7),
+                SigningCredentials = creds
+            };
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
+    }
+```
+
+- Add await to Token part of AccountController and also add roles at register to users
+
+```cs
+    public class AccountController : BaseApiController
+    {
+        private readonly ITokenService _tokenService;
+        private readonly UserManager<AppUser> _userManager;
+        private readonly SignInManager<AppUser> _signInManager;
+        private readonly IMapper _mapper;
+        public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService, IMapper mapper)
+        {
+            _userManager = userManager;
+            _signInManager = signInManager;
+            _mapper = mapper;
+            _tokenService = tokenService;
+        }
+        [HttpPost("register")]
+        public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
+        {
+            if (await UserExists(registerDto.Username)) return BadRequest("Username is taken");
+            var user = _mapper.Map<AppUser>(registerDto);
+            user.UserName = registerDto.Username.ToLower();
+            var result = await _userManager.CreateAsync(user, registerDto.Password);
+            if (!result.Succeeded) return BadRequest(result.Errors);
+            var roleResult = await _userManager.AddToRoleAsync(user, "Member");
+            if (!roleResult.Succeeded) return BadRequest(result.Errors);
+            return new UserDto
+            {
+                Username = user.UserName,
+                Token = await _tokenService.CreateToken(user),
+                KnownAs = user.KnownAs,
+                Gender = user.Gender
+            };
+        }
+
+        [HttpPost("login")]
+        public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
+        {
+            var user = await _userManager.Users.Include(p => p.Photos).SingleOrDefaultAsync(x => x.UserName == loginDto.Username.ToLower());
+            if (user == null) return Unauthorized("Invalid username");
+            var result = await _signInManager
+                .CheckPasswordSignInAsync(user, loginDto.Password, false);
+            if (!result.Succeeded) return Unauthorized();
+            return new UserDto
+            {
+                Username = user.UserName,
+                Token = await _tokenService.CreateToken(user),
+                PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url,
+                KnownAs = user.KnownAs,
+                Gender = user.Gender
+            };
+        }
+        private async Task<bool> UserExists(string username)
+        {
+            return await _userManager.Users.AnyAsync(x => x.UserName == username.ToLower());
+        }
+    }
+```
+
+
+
 ## 16 - SignalR
 
 ## 17 - Unit of Work Pattern
