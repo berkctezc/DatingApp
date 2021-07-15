@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using API.DTOs;
 using API.Entities;
 using API.Extensions;
@@ -10,6 +7,9 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace API.Controllers
 {
@@ -19,7 +19,8 @@ namespace API.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
         private readonly IPhotoService _photoService;
-        public UsersController(IUserRepository userRepository, IMapper mapper, 
+
+        public UsersController(IUserRepository userRepository, IMapper mapper,
             IPhotoService photoService)
         {
             _photoService = photoService;
@@ -28,7 +29,7 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers([FromQuery]UserParams userParams)
+        public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers([FromQuery] UserParams userParams)
         {
             var user = await _userRepository.GetUserByUsernameAsync(User.GetUsername());
             userParams.CurrentUsername = user.UserName;
@@ -38,7 +39,7 @@ namespace API.Controllers
 
             var users = await _userRepository.GetMembersAsync(userParams);
 
-            Response.AddPaginationHeader(users.CurrentPage, users.PageSize, 
+            Response.AddPaginationHeader(users.CurrentPage, users.PageSize,
                 users.TotalCount, users.TotalPages);
 
             return Ok(users);
@@ -53,7 +54,6 @@ namespace API.Controllers
         [HttpPut]
         public async Task<ActionResult> UpdateUser(MemberUpdateDto memberUpdateDto)
         {
-
             var user = await _userRepository.GetUserByUsernameAsync(User.GetUsername());
 
             _mapper.Map(memberUpdateDto, user);
@@ -89,9 +89,8 @@ namespace API.Controllers
 
             if (await _userRepository.SaveAllAsync())
             {
-                return CreatedAtRoute("GetUser", new {username = user.UserName} ,_mapper.Map<PhotoDto>(photo));
+                return CreatedAtRoute("GetUser", new { username = user.UserName }, _mapper.Map<PhotoDto>(photo));
             }
-                
 
             return BadRequest("Problem addding photo");
         }

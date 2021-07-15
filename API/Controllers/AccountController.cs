@@ -1,5 +1,3 @@
-using System.Linq;
-using System.Threading.Tasks; 
 using API.DTOs;
 using API.Entities;
 using API.Interfaces;
@@ -7,6 +5,8 @@ using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace API.Controllers
 {
@@ -16,6 +16,7 @@ namespace API.Controllers
         private readonly UserManager<AppUser> _userManager;
         private readonly SignInManager<AppUser> _signInManager;
         private readonly IMapper _mapper;
+
         public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService, IMapper mapper)
         {
             _userManager = userManager;

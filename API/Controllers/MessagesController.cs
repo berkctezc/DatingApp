@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using API.DTOs;
 using API.Entities;
 using API.Extensions;
@@ -8,6 +6,8 @@ using API.Interfaces;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace API.Controllers
 {
@@ -17,6 +17,7 @@ namespace API.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IMessageRepository _messageRepository;
         private readonly IMapper _mapper;
+
         public MessagesController(IUserRepository userRepository, IMessageRepository messageRepository,
             IMapper mapper)
         {
@@ -52,7 +53,6 @@ namespace API.Controllers
             if (await _messageRepository.SaveAllAsync()) return Ok(_mapper.Map<MessageDto>(message));
 
             return BadRequest("Failed to send message");
-
         }
 
         [HttpGet]

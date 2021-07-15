@@ -1,9 +1,9 @@
 using API.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
 
 namespace API.Data
 {
@@ -28,7 +28,6 @@ namespace API.Data
             {
                 await roleManager.CreateAsync(role);
             }
-
 
             foreach (var user in users)
             {
