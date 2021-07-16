@@ -6607,6 +6607,12 @@ public class AdminController : ControllerBase
       //...
 ```
 
+### Adding an admin component (FE)
+
+- Created Admin component in src/app/admin
+- Add to routing    `{ path: 'admin', component: AdminPanelComponent },`
+- Create link in nav.html
+
 ## 16 - SignalR
 
 ## 17 - Unit of Work Pattern
