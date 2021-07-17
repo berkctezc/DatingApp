@@ -6692,6 +6692,80 @@ export class HasRoleDirective implements OnInit {
 </li>
 ```
 
+### Adding the edit roles component
+
+- Create user-management component in /admin
+- Add Admin panel features photo management and role management but photo only for admin
+
+```html
+<h2>Admin Panel</h2>
+<div class="tab-panel">
+  <tabset class="member-tabset">
+    <tab heading="User management" *appHasRole="['Admin']">
+      <div class="container">
+        <app-user-management></app-user-management>
+      </div>
+    </tab>
+    <tab heading="Photo management" *appHasRole="['Admin', 'Moderator']">
+      <div class="container">
+        <app-photo-management></app-photo-management>
+      </div>
+    </tab>
+  </tabset>
+</div>
+```
+
+- Create admin service in /_services
+
+```ts
+export class AdminService {
+  baseUrl = environment.apiUrl;
+  constructor(private http: HttpClient) { }
+  getUsersWithRoles() {
+    return this.http.get<Partial<User[]>>(this.baseUrl + 'admin/users-with-roles')
+  }
+}
+```
+
+- user-management component
+
+```ts
+export class UserManagementComponent implements OnInit {
+  users: Partial<User[]>;
+
+  constructor(private adminService: AdminService) { }
+
+  ngOnInit(): void {
+    this.getUsersWithRoles();
+  }
+
+  getUsersWithRoles() {
+    this.adminService.getUsersWithRoles().subscribe(users => {
+      this.users = users
+    });
+  }
+}
+```
+
+- User management component template
+
+```html
+<div class="row">
+  <table class="table">
+    <tr>
+      <th>Username</th>
+      <th>Active Roles</th>
+      <th></th>
+    </tr>
+    <tr *ngFor="let user of users">
+      <td>{{ user.username }}</td>
+      <td>{{ user.roles }}</td>
+      <td><button class="btn btn-info">Edit Roles</button></td>
+    </tr>
+  </table>
+</div>
+```
+
 
 
 ## 16 - SignalR
