@@ -6654,6 +6654,44 @@ export class AdminGuard implements CanActivate {
   }
 ```
 
+### Adding a custom directive
+
+```bash
+cd src/app;
+mkdir _directives; cd _directives
+ng g d has-role --skip-tests
+```
+
+- **has-role.directive.ts**
+
+```ts
+export class HasRoleDirective implements OnInit {
+    @Input() appHasRole: string[];
+    user: User;
+    constructor(private viewContainerRef: ViewContainerRef,
+                 private templateRef: TemplateRef<any>,
+                 private accountService: AccountService) {
+        this.accountService.currentUser$.pipe(take(1)).subscribe(user => {
+            this.user = user;
+        })
+    }
+    ngOnInit(): void {
+        if (!this.user?.roles || this.user == null) {
+            this.viewContainerRef.clear();
+        return;
+    }
+    if (this.user?.roles.some(r => this.appHasRole.includes(r))) {
+        this.viewContainerRef.createEmbeddedView(this.templateRef);} else {this.viewContainerRef.clear();}}}
+```
+
+- Navbar admin button
+
+```html
+<li *appHasRole="['Admin', 'Moderator']" class="nav-item">
+    <a class="nav-link" routerLink="/admin" routerLinkActive="active">Admin</a>
+</li>
+```
+
 
 
 ## 16 - SignalR
