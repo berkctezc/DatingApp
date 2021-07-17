@@ -2,6 +2,8 @@
 
 This is a project for learning purposes named DatingApp.
 
+[TOC]
+
 ## 1 - Creating the .Net API (BE)
 
 ### dotnet-cli
@@ -83,16 +85,16 @@ dotnet run
 
 - add to services in **ConfigureServices** >
 
-  ```cs
-  services.AddDbContext<DataContext>(options=>{options.UseSqlite("Connection String");});
-  ```
+```cs
+services.AddDbContext<DataContext>(options=>{options.UseSqlite("Connection String");});
+```
 
 - add connection string to appsettings.Development.json
 
-  ```cs
-     "ConnectionStrings": {"DefaultConnection":"Data source=datingapp.db"},
-  ```
-  
+```cs
+"ConnectionStrings": {"DefaultConnection":"Data source=datingapp.db"},
+```
+
 - use it in Startup.cs
 
 ```cs
@@ -110,7 +112,7 @@ public void ConfigureServices(IServiceCollection services){
 // .....
 ```
 
-- **install dotnet-ef in cli **=>
+- **install dotnet-ef in cli **
 
 ```bash
 dotnet tool install --global dotnet-ef # you can specify a version by --version
@@ -147,17 +149,11 @@ some action examples
 
 ```cs
 [HttpGet]
-public ActionResult<IEnumerable<AppUser>> GetUsers()
-{
-    return _context.Users.ToList();
-}
+public ActionResult<IEnumerable<AppUser>> GetUsers(){ return _context.Users.ToList(); }
 
 // api/users/1
 [HttpGet("{id}")]
-public ActionResult<AppUser> GetUsers(int id)
-{
-    return _context.Users.Find(id);
-}
+public ActionResult<AppUser> GetUsers(int id){ return _context.Users.Find(id); }
 ```
 
 ### Making our code Async
@@ -168,10 +164,7 @@ public ActionResult<AppUser> GetUsers(int id)
 
   ```cs
   [HttpGet]
-  public async Task<ActionResult<IEnumerable<AppUser>>> GetUsers()
-  {
-      return await _context.Users.ToListAsync();
-  }
+  public async Task<ActionResult<IEnumerable<AppUser>>> GetUsers(){ return await _context.Users.ToListAsync(); }
   ```
 
 ## 2 - Creating the Angular Client (FE)
@@ -307,21 +300,21 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
 
 - generate ssl keys with openssl
 
-  ```bash
-  openssl req -newkey rsa:2048 -nodes -keyout server.key -x509 -days 365 -out server.crt
-  ```
+```bash
+openssl req -newkey rsa:2048 -nodes -keyout server.key -x509 -days 365 -out server.crt
+```
 
 - put crt and key files into folder named ssl inside angular client folder.
 
 - add to angular.json serve>options
 
-  ```json
-  "options": {
-      "sslCert": "./ssl/server.crt",
-      "sslKey": "./ssl/server.key",
-      "ssl": true
-  },
-  ```
+```json
+"options": {
+    "sslCert": "./ssl/server.crt",
+    "sslKey": "./ssl/server.key",
+    "ssl": true
+},
+```
 
 ## 3 - Authentication Basics (BE)
 
@@ -422,43 +415,43 @@ public string Password { get; set; }
 ### Adding a login endpoint
 
 ```cs
-        [HttpPost("login")]
-        public async Task<ActionResult<AppUser>> Login(LoginDto loginDto)
-        {
-            // check if this user exists. if we have user with that username then assign it to user, if not assign null to user
-            var user = await _context.Users
-            .SingleOrDefaultAsync(x => x.UserName == loginDto.Username);
+[HttpPost("login")]
+public async Task<ActionResult<AppUser>> Login(LoginDto loginDto)
+{
+    // check if this user exists. if we have user with that username then assign it to user, if not assign null to user
+    var user = await _context.Users
+        .SingleOrDefaultAsync(x => x.UserName == loginDto.Username);
 
-            // if null return 401
-            if (user == null) return Unauthorized("Invalid Username");
+    // if null return 401
+    if (user == null) return Unauthorized("Invalid Username");
 
-            // if user is valid then calculate salt and hash to compare with db salt and hash
-            using var hmac = new HMACSHA512(user.PasswordSalt);
+    // if user is valid then calculate salt and hash to compare with db salt and hash
+    using var hmac = new HMACSHA512(user.PasswordSalt);
 
-            var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(loginDto.Password));
+    var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(loginDto.Password));
 
-            for (int i = 0; i < computedHash.Length; i++)
-            {
-                if (computedHash[i] != user.PasswordHash[i]) return Unauthorized("Invalid Password");
-            }
+    for (int i = 0; i < computedHash.Length; i++)
+    {
+        if (computedHash[i] != user.PasswordHash[i]) return Unauthorized("Invalid Password");
+    }
 
-            return user;
-        }
+    return user;
+}
 ```
 
 ### Adding a Token Service - JWT
 
 - Add ITokenService interface into folder name Interfaces and implement it in services folder
 
-  ```cs
-  namespace API.Interfaces
-  {
-      public interface ITokenService
-      {
-          string CreateToken(AppUser user);
-      }
-  }
-  ```
+```cs
+namespace API.Interfaces
+{
+    public interface ITokenService
+    {
+        string CreateToken(AppUser user);
+    }
+}
+```
 
   ```cs
   namespace API.Services
@@ -476,7 +469,7 @@ public string Password { get; set; }
   - Add in **Startup>ConfigureServices**
 
 ```cs
-   services.AddScoped<ITokenService, TokenService>();
+services.AddScoped<ITokenService, TokenService>();
 ```
 
 ### Adding Create Token Logic
@@ -485,37 +478,37 @@ public string Password { get; set; }
 - Implement logic
 
 ```cs
-    public class TokenService : ITokenService
+public class TokenService : ITokenService
+{
+    private readonly SymmetricSecurityKey _key;
+    public TokenService(IConfiguration config)
     {
-        private readonly SymmetricSecurityKey _key;
-        public TokenService(IConfiguration config)
-        {
-            _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"])); // from appsettings
-        }
-
-        public string CreateToken(AppUser user)
-        {
-            var claims = new List<Claim>
-            {
-                new Claim(JwtRegisteredClaimNames.NameId, user.UserName)
-            };
-
-            var creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);
-
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(claims),
-                Expires = System.DateTime.Now.AddDays(7),
-                SigningCredentials = creds
-            };
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-
-            return tokenHandler.WriteToken(token);
-        }
+        _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"])); // from appsettings
     }
+
+    public string CreateToken(AppUser user)
+    {
+        var claims = new List<Claim>
+        {
+            new Claim(JwtRegisteredClaimNames.NameId, user.UserName)
+        };
+
+        var creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(claims),
+            Expires = System.DateTime.Now.AddDays(7),
+            SigningCredentials = creds
+        };
+
+        var tokenHandler = new JwtSecurityTokenHandler();
+
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+
+        return tokenHandler.WriteToken(token);
+    }
+}
 ```
 
 ### Creating a User DTO and returning the token
@@ -6747,7 +6740,7 @@ export class UserManagementComponent implements OnInit {
 }
 ```
 
-- User management component template
+- User management template
 
 ```html
 <div class="row">
@@ -6765,6 +6758,114 @@ export class UserManagementComponent implements OnInit {
   </table>
 </div>
 ```
+
+### Setting up modals
+
+- Import Modal Module from ngx-bootstrap in shared module
+
+```ts
+import { ModalModule } from 'ngx-bootstrap/modal';
+@NgModule({
+  declarations: [],
+  imports: [// ...
+    ModalModule.forRoot()
+  ],
+  exports: [// ...
+    ModalModule
+  ]
+})
+```
+
+- `mkdir modals; ng g c roles-modal --skip-tests` 
+- User management component
+
+```ts
+export class UserManagementComponent implements OnInit {
+    //..
+    bsModalRef: BsModalRef;
+
+    constructor(private adminService: AdminService, private modalService: BsModalService) { }
+    //...
+    openRolesModal() {
+        const initialState = {
+            list: [
+                'Open a modal with component',
+                "Pass your data",
+                "Do something else",
+                "..."
+            ],
+            title: 'Modal with component'
+        };
+        this.bsModalRef = this.modalService.show(RolesModalComponent, { initialState });
+        this.bsModalRef.content.closeBtnName = 'Close';
+    }
+}
+```
+
+- User management template
+
+```html
+<div class="row">
+  <table class="table">
+    <tr>
+      <th>Username</th>
+      <th>Active Roles</th>
+      <th></th>
+    </tr>
+    <tr *ngFor="let user of users">
+      <td>{{ user.username }}</td>
+      <td>{{ user.roles }}</td>
+      <td>
+        <button (click)="openRolesModal()" class="btn btn-info">
+          Edit Roles
+        </button>
+      </td>
+    </tr>
+  </table>
+</div>
+```
+
+- Roles modal component
+
+```ts
+import { Component, OnInit } from '@angular/core';
+import { BsModalRef } from 'ngx-bootstrap/modal';
+@Component({
+  selector: 'app-roles-modal',
+  templateUrl: './roles-modal.component.html',
+  styleUrls: ['./roles-modal.component.css']
+})
+export class RolesModalComponent implements OnInit {
+  title: string;
+  list: any[] = [];
+  closeBtnName: string
+  constructor(public bsModalRef: BsModalRef) { }
+  ngOnInit(): void { }
+}
+```
+
+- Roles modal template
+
+```html
+<div class="modal-header">
+  <h4 class="modal-title pull-left">{{ title }}</h4>
+  <button type="button" class="close pull-right" aria-label="Close" (click)="bsModalRef.hide()">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+<div class="modal-body">
+  <ul *ngIf="list.length">
+    <li *ngFor="let item of list">{{ item }}</li>
+  </ul>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-default" (click)="bsModalRef.hide()">
+    {{ closeBtnName }}
+  </button>
+</div>
+```
+
+### Editing roles in the client
 
 
 
