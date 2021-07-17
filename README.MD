@@ -6613,6 +6613,49 @@ public class AdminController : ControllerBase
 - Add to routing    `{ path: 'admin', component: AdminPanelComponent },`
 - Create link in nav.html
 
+### Adding an admin guard
+
+- Created guard in src/app/_guards => `ng g g admin --skip-tests`
+
+```ts
+export class AdminGuard implements CanActivate {
+  constructor(private accountService: AccountService, private toastr: ToastrService) {
+
+  }
+
+  canActivate(): Observable<boolean> {
+    return this.accountService.currentUser$.pipe(
+      map(user => {
+        if (user.roles.includes('Admin') || user.roles.includes('Moderator')) {
+          return true;
+        }
+        this.toastr.error('You cannot enter this page');
+      }))
+  }
+}
+```
+
+- Add  `roles: string[];` to **user.ts** model
+- Add guard to routing of admin    `{ path: 'admin', component: AdminPanelComponent, canActivate: [AdminGuard] },`
+- Create getDecodedToken function and update setCurrentUser function
+
+```ts
+//...
+  setCurrentUser(user: User) {
+    user.roles = [];
+    const roles = this.getDecodedToken(user.token).role;
+    Array.isArray(roles) ? user.roles = roles : user.roles.push(roles);
+    localStorage.setItem('user', JSON.stringify(user));
+    this.currentUserSource.next(user);
+  }
+//...
+  getDecodedToken(token) {
+    return JSON.parse(atob(token.split('.')[1]));
+  }
+```
+
+
+
 ## 16 - SignalR
 
 ## 17 - Unit of Work Pattern
