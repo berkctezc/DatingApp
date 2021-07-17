@@ -28,14 +28,14 @@ namespace API.Controllers
                 .Include(r => r.UserRoles)
                 .ThenInclude(r => r.Role)
                 .OrderBy(u => u.UserName)
-                .Select(u=>new
+                .Select(u => new
                 {
                     u.Id,
-                    Username=u.UserName,
-                    Roles=u.UserRoles.Select(r=>r.Role.Name).ToList()
+                    Username = u.UserName,
+                    Roles = u.UserRoles.Select(r => r.Role.Name).ToList()
                 })
                 .ToListAsync();
-            
+
             return Ok(users);
         }
 

@@ -6867,6 +6867,176 @@ export class RolesModalComponent implements OnInit {
 
 ### Editing roles in the client
 
+- Roles modal component
+
+```ts
+export class RolesModalComponent implements OnInit {
+  @Input() updateSelectedRoles = new EventEmitter();
+  user: User;
+  roles: any[];
+
+  constructor(public bsModalRef: BsModalRef) { }
+
+  ngOnInit(): void {
+  }
+
+  updateRoles() {
+    this.updateSelectedRoles.emit(this.roles);
+    this.bsModalRef.hide();
+  }
+
+}
+```
+
+- Roles modal template
+
+```html
+<div class="modal-header">
+  <h4 class="modal-title pull-left">Edit roles for {{ user.username }}</h4>
+  <button
+    type="button"
+    class="close pull-right"
+    aria-label="Close"
+    (click)="bsModalRef.hide()"
+  >
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+<div class="modal-body">
+  <form #rolesForm="ngForm" id="rolesForm">
+    <div class="form-check" *ngFor="let role of roles">
+      <input
+        type="checkbox"
+        class="form-check-input"
+        [checked]="role.checked"
+        value="role.name"
+        (change)="role.checked = !role.checked"
+        [disabled]="role.name === 'Admin' && user.username === 'admin'"
+      />
+      <label>{{ role.name }}</label>
+    </div>
+  </form>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-default" (click)="bsModalRef.hide()">
+    Cancel
+  </button>
+  <button type="button" class="btn btn-success" (click)="updateRoles()">
+    Submit
+  </button>
+</div>
+```
+
+- Admin service
+
+```ts
+ export class AdminService {
+  baseUrl = environment.apiUrl;
+
+  constructor(private http: HttpClient) { }
+
+  getUsersWithRoles() {
+    return this.http.get<Partial<User[]>>(this.baseUrl + 'admin/users-with-roles');
+  }
+
+  updateUserRoles(username: string, roles: string[]) {
+    return this.http.post(this.baseUrl + 'admin/edit-roles/' + username + '?roles=' + roles, {});
+  }
+}
+```
+
+* User management component
+
+```ts
+export class UserManagementComponent implements OnInit {
+  users: Partial<User[]>;
+  bsModalRef: BsModalRef;
+
+  constructor(private adminService: AdminService, private modalService: BsModalService) { }
+
+  ngOnInit(): void {
+    this.getUsersWithRoles();
+  }
+
+  getUsersWithRoles() {
+    this.adminService.getUsersWithRoles().subscribe(users => {
+      this.users = users;
+    })
+  }
+
+  openRolesModal(user: User) {
+    const config = {
+      class: 'modal-dialog-centered',
+      initialState: {
+        user,
+        roles: this.getRolesArray(user)
+      }
+    }
+    this.bsModalRef = this.modalService.show(RolesModalComponent, config);
+    this.bsModalRef.content.updateSelectedRoles.subscribe(values => {
+      const rolesToUpdate = {
+        roles: [...values.filter(el => el.checked === true).map(el => el.name)]
+      };
+      if (rolesToUpdate) {
+        this.adminService.updateUserRoles(user.username, rolesToUpdate.roles).subscribe(() => {
+          user.roles = [...rolesToUpdate.roles]
+        })
+      }
+    })
+  }
+
+  private getRolesArray(user) {
+    const roles = [];
+    const userRoles = user.roles;
+    const availableRoles: any[] = [
+      { name: 'Admin', value: 'Admin' },
+      { name: 'Moderator', value: 'Moderator' },
+      { name: 'Member', value: 'Member' }
+    ];
+
+    availableRoles.forEach(role => {
+      let isMatch = false;
+      for (const userRole of userRoles) {
+        if (role.name === userRole) {
+          isMatch = true;
+          role.checked = true;
+          roles.push(role);
+          break;
+        }
+      }
+      if (!isMatch) {
+        role.checked = false;
+        roles.push(role);
+      }
+    })
+    return roles;
+  }
+}
+```
+
+- User management template
+
+```html
+<div class="row">
+  <table class="table">
+    <tr>
+      <th style="width: 30%">Username</th>
+      <th style="width: 40%">Active roles</th>
+      <th style="width: 30%"></th>
+    </tr>
+    <tr *ngFor="let user of users">
+      <td>{{ user.username }}</td>
+      <td>{{ user.roles }}</td>
+      <td>
+        <button (click)="openRolesModal(user)" class="btn btn-info">
+          Edit Roles
+        </button>
+      </td>
+    </tr>
+  </table>
+</div>
+```
+
 
 
 ## 16 - SignalR
