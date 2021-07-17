@@ -7037,9 +7037,54 @@ export class UserManagementComponent implements OnInit {
 </div>
 ```
 
-
-
 ## 16 - SignalR
+
+### Adding a presence hub
+
+- Create new folder in API SignalR and create a class called PresenceHub
+
+```cs
+namespace API.SignalR
+{
+    public class PresenceHub : Hub
+    {
+        public override async Task OnConnectedAsync()
+        {
+            await Clients.Others.SendAsync("UserIsOnline", Context.User.GetUsername());
+        }
+
+        public override async Task OnDisconnectedAsync(Exception exception)
+        {
+            await Clients.Others.SendAsync("UserIsOffline", Context.User.GetUsername());
+
+            await base.OnDisconnectedAsync(exception);
+        }
+    }
+}
+```
+
+- Add SignalR service at startup configureServices and add enpoints mapHub to configure
+
+```cs
+public void ConfigureServices(IServiceCollection services)
+{
+	// ...
+    services.AddSignalR();
+}
+public void Configure(IApplicationBuilder app)
+{
+    // ...
+    app.UseEndpoints(endpoints =>
+                     {
+                         endpoints.MapControllers();
+                         endpoints.MapHub<PresenceHub>("hubs/presence");
+                     });
+}
+```
+
+### Authentication to SignalR
+
+
 
 ## 17 - Unit of Work Pattern
 
