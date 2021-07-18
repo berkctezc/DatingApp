@@ -7084,6 +7084,35 @@ public void Configure(IApplicationBuilder app)
 
 ### Authentication to SignalR
 
+- Add [**Authorize**] to **PresenceHub**
+- Add event option to services in **IdentityServiceExtensions**
+
+```cs
+services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>{options.TokenValidationParameters = new TokenValidationParameters{ValidateIssuerSigningKey = true,IssuerSigningKey = new(Encoding.UTF8.GetBytes(config["TokenKey"])), ValidateIssuer = false,ValidateAudience = false,};
+ 					// here
+                      options.Events = new JwtBearerEvents {OnMessageReceived = context =>{
+                              var accessToken = context.Request.Query["access_token"];
+                              var path = context.HttpContext.Request.Path;
+                              if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs")) context.Token = accessToken;
+                              return Task.CompletedTask;
+                          }};});
+```
+
+- Add **AllowCredentials()** to **UseCors** in **Startup** **Configure**
+
+```cs
+public void Configure(IApplicationBuilder app)
+{
+    // ...
+    app.UseCors(x => x
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials()
+                .WithOrigins("https://localhost:4200"));
+    // ...
+}
+```
+
 
 
 ## 17 - Unit of Work Pattern

@@ -63,7 +63,7 @@ namespace API.Controllers
 
         [Authorize(Policy = "ModeratePhotoRole")]
         [HttpGet("photos-to-moderate")]
-        public async Task<ActionResult> GetPhotosForModeration()
+        public ActionResult GetPhotosForModeration()
         {
             return Ok("Admins or moderators can see this");
         }
