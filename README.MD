@@ -7187,7 +7187,83 @@ setCurrentUser() {
   }}
 ```
 
+### Adding a presence tracker (BE)
 
+- Presence Tracker
+
+```cs
+    public class PresenceTracker
+    {
+        private static readonly Dictionary<string, List<string>> OnlineUsers = new();
+        public Task UserConnected(string username, string connectionId)
+        {
+            lock (OnlineUsers)
+            {
+                if (OnlineUsers.ContainsKey(username)) OnlineUsers[username].Add(connectionId);
+                else OnlineUsers.Add(username, new List<string> { connectionId });
+            }
+            return Task.CompletedTask;
+        }
+        public Task UserDisconnected(string username, string connectionId)
+        {
+            lock (OnlineUsers)
+            {
+                if (!OnlineUsers.ContainsKey(username)) return Task.CompletedTask;
+
+                OnlineUsers[username].Remove(connectionId);
+                if (OnlineUsers[username].Count == 0) OnlineUsers.Remove(username);
+            }
+
+            return Task.CompletedTask;
+        }
+        public Task<string[]> GetOnlineUsers()
+        {
+            string[] onlineUsers;
+            lock (OnlineUsers)
+            {
+                onlineUsers = OnlineUsers.OrderBy(k => k.Key).Select(k => k.Key).ToArray();
+            }
+
+            return Task.FromResult(onlineUsers);
+        }
+    }
+```
+
+- Update **PresenceHub**
+
+```cs
+    public class PresenceHub : Hub
+    {
+        private readonly PresenceTracker _tracker;
+        public PresenceHub(PresenceTracker tracker)
+        {
+            _tracker = tracker;
+        }
+
+        [Authorize]
+        public override async Task OnConnectedAsync()
+        {
+            await _tracker.UserConnected(Context.User.GetUsername(), Context.ConnectionId);
+            await Clients.Others.SendAsync("UserIsOnline", Context.User.GetUsername());
+
+            var currentUsers = await _tracker.GetOnlineUsers();
+            await Clients.All.SendAsync("GetOnlineUsers", currentUsers);
+        }
+
+        public override async Task OnDisconnectedAsync(Exception exception)
+        {
+            await _tracker.UserDisconnected(Context.User.GetUsername(), Context.ConnectionId);
+            await Clients.Others.SendAsync("UserIsOffline", Context.User.GetUsername());
+
+            var currentUsers = await _tracker.GetOnlineUsers();
+            await Clients.All.SendAsync("GetOnlineUsers", currentUsers);
+
+            await base.OnDisconnectedAsync(exception);
+        }
+    }
+```
+
+- Add to **ApplicationServiceExtensions** `services.AddSingleton<PresenceTracker>();`
 
 ## 17 - Unit of Work Pattern
 
