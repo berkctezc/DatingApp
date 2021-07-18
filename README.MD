@@ -7113,6 +7113,80 @@ public void Configure(IApplicationBuilder app)
 }
 ```
 
+### Client Side SignalR
+
+- Install SignalR via npm `npm install @microsoft/signalr` 
+- Add **hubUrl** to **environment** and **environment.prod**
+- generate **presence.service** in **_services** `ng g s presence --skip-tests`
+
+```ts
+export class PresenceService {
+    hubUrl = environment.hubUrl;
+    private hubConnection: HubConnection;
+    constructor(private toastr: ToastrService) { }
+    createHubConnection(user: User) {
+        this.hubConnection = new HubConnectionBuilder()
+            .withUrl(this.hubUrl + 'presence', {
+            accessTokenFactory: () => user.token
+        })
+            .withAutomaticReconnect()
+            .build()
+        this.hubConnection
+            .start()
+            .catch(error => console.log(error));
+        this.hubConnection.on('UserIsOnline', username => {
+            this.toastr.info(username + 'has connected');
+        })
+        this.hubConnection.on('UserIsOffline', username => {
+            this.toastr.warning(username + 'has disconnected');
+        })
+    }
+    stopHubConnection() {
+        this.hubConnection.stop().catch(error => console.log(error));
+    }
+}
+```
+
+- Use service in **app.component.ts**
+
+```ts
+constructor(private accountService: AccountService, private presence: PresenceService) { }
+ngOnInit() {this.setCurrentUser();}
+setCurrentUser() {
+    const user: User = JSON.parse(localStorage.getItem('user'));
+    if (user) {
+        this.accountService.setCurrentUser(user);
+        this.presence.createHubConnection(user); // signalr hub connection
+    }}}
+```
+
+- Add create and stop hub connection functions to **account.service** 's login, register, logout methods
+
+```ts
+  constructor(private http: HttpClient, private presence: PresenceService) { }
+
+  login(model: any) {
+    return this.http.post(this.baseUrl + 'account/login', model).pipe(
+      map((response: User) => {
+        const user = response;
+        if (user) {
+          this.setCurrentUser(user);
+          this.presence.createHubConnection(user);  // here
+        }}))}
+  register(model: any) {
+    return this.http.post(this.baseUrl + 'account/register', model).pipe(
+      map((user: User) => {
+        if (user) {
+          this.setCurrentUser(user);
+          this.presence.createHubConnection(user);  // here
+        }}))}
+  logout() {
+    localStorage.removeItem('user');
+    this.currentUserSource.next(null);
+    this.presence.stopHubConnection(); // here
+  }}
+```
+
 
 
 ## 17 - Unit of Work Pattern
