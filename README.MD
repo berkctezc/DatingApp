@@ -7039,7 +7039,7 @@ export class UserManagementComponent implements OnInit {
 
 ## 16 - SignalR
 
-### Adding a presence hub
+### Adding a presence hub (BE)
 
 - Create new folder in API SignalR and create a class called PresenceHub
 
@@ -7082,7 +7082,7 @@ public void Configure(IApplicationBuilder app)
 }
 ```
 
-### Authentication to SignalR
+### Authentication to SignalR (BE)
 
 - Add [**Authorize**] to **PresenceHub**
 - Add event option to services in **IdentityServiceExtensions**
@@ -7113,7 +7113,7 @@ public void Configure(IApplicationBuilder app)
 }
 ```
 
-### Client Side SignalR
+### Client Side SignalR (FE)
 
 - Install SignalR via npm `npm install @microsoft/signalr` 
 - Add **hubUrl** to **environment** and **environment.prod**
@@ -7265,7 +7265,7 @@ setCurrentUser() {
 
 - Add to **ApplicationServiceExtensions** `services.AddSingleton<PresenceTracker>();`
 
-### Displaying online presence
+### Displaying online presence (FE)
 
 - Add BehaviourSubject to **presence.service** and an observable
 
@@ -7320,7 +7320,39 @@ export class PresenceService {
 </div>
 ```
 
+### Creating a message hub (BE)
 
+- Create **MessageHub** in SignalR folder
+
+```cs
+    public class MessageHub : Hub
+    {
+        private readonly IMessageRepository _messageRepository;
+        private readonly IMapper _mapper;
+        public MessageHub(IMessageRepository messageRepository, IMapper mapper)
+        {
+            _messageRepository = messageRepository;
+            _mapper = mapper;
+        }
+        public override async Task OnConnectedAsync()
+        {
+            var httpContext = Context.GetHttpContext();
+            var otherUser = httpContext.Request.Query["user"].ToString();
+            var groupName = GetGroupName(Context.User.GetUsername(), otherUser);
+            await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+            var messages = await _messageRepository.GetMessageThread(Context.User.GetUsername(), otherUser);
+            await Clients.Group(groupName).SendAsync("ReceiveMessageThread", messages);
+        }
+        public override async Task OnDisconnectedAsync(Exception exception)=>await base.OnDisconnectedAsync(exception);
+        private string GetGroupName(string caller, string other)
+        {
+            var stringCompare = string.CompareOrdinal(caller, other) < 0;
+            return stringCompare ? $"{caller}-{other}" : $"{other}-{caller}";
+        }
+    }
+```
+
+- Add Endpoint  `MapHub<MessageHub>("hubs/message")` in **Startup**
 
 ## 17 - Unit of Work Pattern
 
