@@ -7265,6 +7265,63 @@ setCurrentUser() {
 
 - Add to **ApplicationServiceExtensions** `services.AddSingleton<PresenceTracker>();`
 
+### Displaying online presence
+
+- Add BehaviourSubject to **presence.service** and an observable
+
+```ts
+export class PresenceService {
+//...
+  private onlineUsersSource = new BehaviorSubject<string[]>([]);
+  onlineUsers$ = this.onlineUsersSource.asObservable();
+//...
+  createHubConnection(user: User) {
+//...
+    this.hubConnection.on('GetOnlineUsers', (usernames: string[]) => {
+      this.onlineUsersSource.next(usernames);
+    })
+  }
+//...
+}
+```
+
+- Inject **PresenceService** as presence in **member-card.component**. And in template add a span with being online condition
+
+```html
+<div class="card-body p-1">
+    <h6 class="card-title text-center mb-1">
+      <span [class.is-online]="(presence.onlineUsers$ | async).includes(member.username)">
+        <i class="fa fa-heart mr-2"></i>
+      </span>
+      {{ member.knownAs }}, {{ member.age }}
+    </h6>
+    <p class="card-text text-muted text-center">{{ member.city }}</p>
+  </div>
+```
+
+- Add a blinking effect to heart in CSS
+
+```css
+@keyframes fa-blink {
+  0% {opacity: 1;}
+  100% {opacity: 0.5;}
+}
+.is-online {
+  animation: fa-blink 0.5s infinite;
+  color: rgb(200, 20, 40)
+}
+```
+
+- Also inject **PresenceService** as **presence** to **member-detail.component** and add Online Now info in **template**
+
+```html
+<div class="mb-2" *ngIf="(presence.onlineUsers$ | async).includes(member.username)">
+    <i class="fa fa-user-circle text-success"></i>Online Now
+</div>
+```
+
+
+
 ## 17 - Unit of Work Pattern
 
 ## 18 - Publishing
