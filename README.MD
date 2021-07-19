@@ -7424,7 +7424,54 @@ export class MessageService {
 }
 ```
 
+### Refactoring the message components to use the hub
 
+- MessageService
+
+```ts
+// stop only if its initialized
+stopHubConnection() {
+    if (this.hubConnection) {
+      this.hubConnection.stop();
+    }
+  }
+```
+
+- Member Detail Component
+
+```ts
+export class MemberDetailComponent implements OnInit, OnDestroy {
+// ...
+  user: User;
+  constructor(   //...
+    private accountService: AccountService) {
+    this.accountService.currentUser$.pipe(take(1)).subscribe(user => this.user = user);
+  }
+// ...
+  onTabActivated(data: TabDirective) {
+    this.activeTab = data;
+    if (this.activeTab.heading === 'Messages' && this.messages.length === 0) {
+      this.messageService.createHubConnection(this.user, this.member.username);
+    } else {
+      this.messageService.stopHubConnection();
+    }
+  }
+  ngOnDestroy(): void {
+    this.messageService.stopHubConnection();
+  }
+}
+```
+
+- Member Detail Template
+
+```html
+<tab heading="Messages" (selectTab)="onTabActivated($event)">
+    <app-member-messages [username]="member.username"></app-member-messages>
+</tab>
+```
+
+- Made **messageService** Injection **public** in **member-messages.component.ts**
+- Replaced **messages** variable with **(messageService.messageThread$ | async)** because it is an observable
 
 ## 17 - Unit of Work Pattern
 
