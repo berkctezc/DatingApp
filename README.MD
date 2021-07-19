@@ -7491,7 +7491,70 @@ async sendMessage(username: string, content: string) {
 }
 ```
 
+### Tracking the message groups
 
+- Create Group and Connection entities
+
+```cs
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+
+namespace API.Entities
+{
+    public class Group
+    {
+        public Group(){}
+        public Group(string name){Name = name;}
+        [Key]
+        public string Name { get; set; }
+        public ICollection<Connection> Connections { get; set; } = new List<Connection>();
+    }
+    public class Connection
+    {
+        public Connection(){}
+        public Connection(string connectionId, string username)
+        {
+            ConnectionId = connectionId;
+            Username = username;
+        }
+        public string ConnectionId { get; set; }
+        public string Username { get; set; }
+    }
+}
+```
+
+- Added `public DbSet<Group> Groups { get; set; }  public DbSet<Connection> Connections { get; set; }` to DataContext
+- Added New Methods to **Message Repository Interface** and implemented them in **MessageRepository**
+
+```cs
+public class MessageRepository : IMessageRepository
+{
+    //...
+    public void AddGroup(Group group)
+    {
+        _context.Groups.Add(group);
+    }
+    //...
+    public async Task<Connection> GetConnection(string connectionId)
+    {
+        return await _context.Connections.FindAsync(connectionId);
+    }
+    //...
+    public async Task<Group> GetMessageGroup(string groupName)
+    {
+        return await _context.Groups
+            .Include(x => x.Connections)
+            .FirstOrDefaultAsync(x => x.Name == groupName);
+    }
+    //...
+    public void RemoveConnection(Connection connection)
+    {
+        _context.Connections.Remove(connection);
+    }
+}
+```
+
+- Add new migration `dotnet ef migrations add GroupsAdded` and update database by running api
 
 ## 17 - Unit of Work Pattern
 
