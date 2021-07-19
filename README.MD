@@ -7473,6 +7473,26 @@ export class MemberDetailComponent implements OnInit, OnDestroy {
 - Made **messageService** Injection **public** in **member-messages.component.ts**
 - Replaced **messages** variable with **(messageService.messageThread$ | async)** because it is an observable
 
+### Sending messages via the hub
+
+- **Created Hub connection** for **New Messages** and updated **send message** method in **message service**
+
+```ts
+createHubConnection(user: User, otherUsername: string) {
+    //...
+    this.hubConnection.on('NewMessage', message => {
+        this.messageThread$.pipe(take(1)).subscribe(messages => {
+            this.messageThreadSource.next([...messages, message])
+        })})
+}
+async sendMessage(username: string, content: string) {
+    return this.hubConnection.invoke('SendMessage', { recipientUsername: username, content })
+        .catch(error => console.log(error));
+}
+```
+
+
+
 ## 17 - Unit of Work Pattern
 
 ## 18 - Publishing
