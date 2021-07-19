@@ -7354,6 +7354,44 @@ export class PresenceService {
 
 - Add Endpoint  `MapHub<MessageHub>("hubs/message")` in **Startup**
 
+### Adding the send message method to the hub
+
+- Copy SendMessage function from MessagesController to MessageHub and make some modifications
+
+```cs
+        public async Task SendMessage(CreateMessageDto createMessageDto)
+        {
+            var username = Context.User.GetUsername();
+
+            if (username == createMessageDto.RecipientUsername.ToLower())
+                throw new HubException("You cannot send messages to yourself");
+
+            var sender = await _userRepository.GetUserByUsernameAsync(username);
+            var recipient = await _userRepository.GetUserByUsernameAsync(createMessageDto.RecipientUsername);
+
+            if (recipient == null) throw new HubException("Not found user");
+
+            var message = new Message
+            {
+                Sender = sender,
+                Recipient = recipient,
+                SenderUsername = sender.UserName,
+                RecipientUsername = recipient.UserName,
+                Content = createMessageDto.Content
+            };
+
+            _messageRepository.AddMessage(message);
+
+            if (await _messageRepository.SaveAllAsync())
+            {
+                var group = GetGroupName(sender.UserName, recipient.UserName);
+                await Clients.Group(group).SendAsync("NewMessage", _mapper.Map<MessageDto>(message));
+            }
+        }
+```
+
+
+
 ## 17 - Unit of Work Pattern
 
 ## 18 - Publishing
