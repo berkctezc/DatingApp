@@ -1,3 +1,5 @@
+using System.Text;
+using System.Threading.Tasks;
 using API.Data;
 using API.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -5,8 +7,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace API.Extensions
 {
@@ -43,10 +43,12 @@ namespace API.Extensions
                             var accessToken = context.Request.Query["access_token"];
 
                             var path = context.HttpContext.Request.Path;
-                            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                            if (!string.IsNullOrEmpty(accessToken) &&
+                                path.StartsWithSegments("/hubs"))
                             {
                                 context.Token = accessToken;
                             }
+
                             return Task.CompletedTask;
                         }
                     };

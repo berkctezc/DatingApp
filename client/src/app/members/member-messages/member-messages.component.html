@@ -17,8 +17,9 @@
           <div class="chat-body">
             <div class="header">
               <small class="text-muted">
-                <span class="fa fa-clock-o"></span>
-                {{ message.messageSent | timeago }}
+                <span class="fa fa-clock-o">{{
+                  message.messageSent | timeago
+                }}</span>
                 <span
                   class="text-danger"
                   *ngIf="

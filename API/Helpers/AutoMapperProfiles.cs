@@ -1,9 +1,9 @@
+using System;
+using System.Linq;
 using API.DTOs;
 using API.Entities;
 using API.Extensions;
 using AutoMapper;
-using System;
-using System.Linq;
 
 namespace API.Helpers
 {

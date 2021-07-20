@@ -7653,6 +7653,10 @@ public class MessageHub : Hub
 - Set **`DateTime.Now`** To **`DateTime.UtcNow`** in **`Message.cs`** and **`MessageRepository.cs`**
 - In **AutoMapperProfiles** `CreateMap<DateTime, DateTime>().ConvertUsing(d => DateTime.SpecifyKind(d, DateTimeKind.Utc));`
 
+### Notifying users when they receive a message
+
+
+
 ## 17 - Unit of Work Pattern
 
 ## 18 - Publishing

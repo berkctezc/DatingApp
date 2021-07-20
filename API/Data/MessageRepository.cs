@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using API.DTOs;
 using API.Entities;
 using API.Helpers;
@@ -5,10 +9,6 @@ using API.Interfaces;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace API.Data
 {
@@ -16,7 +16,6 @@ namespace API.Data
     {
         private readonly DataContext _context;
         private readonly IMapper _mapper;
-
         public MessageRepository(DataContext context, IMapper mapper)
         {
             _mapper = mapper;
@@ -43,6 +42,14 @@ namespace API.Data
             return await _context.Connections.FindAsync(connectionId);
         }
 
+        public async Task<Group> GetGroupForConnection(string connectionId)
+        {
+            return await _context.Groups
+                .Include(c => c.Connections)
+                .Where(c => c.Connections.Any(x => x.ConnectionId == connectionId))
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<Message> GetMessage(int id)
         {
             return await _context.Messages
@@ -54,8 +61,8 @@ namespace API.Data
         public async Task<Group> GetMessageGroup(string groupName)
         {
             return await _context.Groups
-                        .Include(x => x.Connections)
-                        .FirstOrDefaultAsync(x => x.Name == groupName);
+                .Include(x => x.Connections)
+                .FirstOrDefaultAsync(x => x.Name == groupName);
         }
 
         public async Task<PagedList<MessageDto>> GetMessagesForUser(MessageParams messageParams)
@@ -77,6 +84,7 @@ namespace API.Data
             var messages = query.ProjectTo<MessageDto>(_mapper.ConfigurationProvider);
 
             return await PagedList<MessageDto>.CreateAsync(messages, messageParams.PageNumber, messageParams.PageSize);
+
         }
 
         public async Task<IEnumerable<MessageDto>> GetMessageThread(string currentUsername,
