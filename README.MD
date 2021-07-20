@@ -7648,7 +7648,10 @@ public class MessageHub : Hub
 }
 ```
 
+### Dealing with UTC date formats
 
+- Set **`DateTime.Now`** To **`DateTime.UtcNow`** in **`Message.cs`** and **`MessageRepository.cs`**
+- In **AutoMapperProfiles** `CreateMap<DateTime, DateTime>().ConvertUsing(d => DateTime.SpecifyKind(d, DateTimeKind.Utc));`
 
 ## 17 - Unit of Work Pattern
 
