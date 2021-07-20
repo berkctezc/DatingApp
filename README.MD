@@ -7655,6 +7655,258 @@ public class MessageHub : Hub
 
 ### Notifying users when they receive a message
 
+- Add **GetConnectionsForUser** method to **PresenceTracker**
+
+```cs
+       public Task<List<string>> GetConnectionsForUser(string username)
+        {
+            List<string> connectionIds;
+            lock (OnlineUsers)
+            {
+                connectionIds = OnlineUsers.GetValueOrDefault(username);
+            }
+            return Task.FromResult(connectionIds);
+        }
+```
+
+- **MessageHub** inject presenceHub and presenceTracker and add an else condition to sendmessage function
+
+```cs
+public async Task SendMessage(CreateMessageDto createMessageDto)
+{
+    var username = Context.User.GetUsername();
+    if (username == createMessageDto.RecipientUsername.ToLower()) throw new HubException("You cannot send messages to yourself");
+    var sender = await _userRepository.GetUserByUsernameAsync(username);
+    var recipient = await _userRepository.GetUserByUsernameAsync(createMessageDto.RecipientUsername);
+    if (recipient == null) throw new HubException("Not found user");
+    var message = new Message
+    {
+        Sender = sender,
+        Recipient = recipient,
+        SenderUsername = sender.UserName,
+        RecipientUsername = recipient.UserName,
+        Content = createMessageDto.Content
+    };
+    var groupName = GetGroupName(sender.UserName, recipient.UserName);
+    var group = await _messageRepository.GetMessageGroup(groupName);
+    if (group.Connections.Any(x => x.Username == recipient.UserName))
+    {
+        message.DateRead = DateTime.UtcNow;
+    }
+    else //here
+    {
+        var connections = await _tracker.GetConnectionsForUser(recipient.UserName);
+        if (connections != null)
+        {
+            await _presenceHub.Clients.Clients(connections).SendAsync("NewMessageReceived", new { username = sender.UserName, knownAs = sender.KnownAs });
+        }
+    }
+    _messageRepository.AddMessage(message);
+    if (await _messageRepository.SaveAllAsync())
+    {
+        await Clients.Group(groupName).SendAsync("NewMessage", _mapper.Map<MessageDto>(message));
+    }
+}
+```
+
+- New **hubConnection** on **presence.service** (inject router)
+
+```ts
+    this.hubConnection.on('NewMessageReceived', ({ username, knownAs }) => {
+      this.toastr.info(knownAs + ' has sent you a new message!')
+        .onTap
+        .pipe(take(1))
+        .subscribe(() => this.router.navigateByUrl('/members/' + username + '?tab=3'));
+    })
+```
+
+- In member-detail component inject router and in constructor add `this.router.routeReuseStrategy.shouldReuseRoute = () => false;`
+
+### Optimizing the presence
+
+- In **PresenceHub**
+
+  - **OnConnectedAsync(...)** change Clients.All.SendAsync(....) to Clients.Caller.SendAsync(...)
+  - **OnDisconnectedAsync(...)** remove var currentUsers and await Clients.All.SendAsync(...) lines
+
+- In **PresenceTracker**
+
+  - In **UserConnected**
+
+    - ```cs
+      public Task<bool> UserConnected(string username, string connectionId)
+      {
+          bool isOnline = false;
+          lock (OnlineUsers)
+          {
+              if (OnlineUsers.ContainsKey(username))
+              {
+                  OnlineUsers[username].Add(connectionId);
+              }
+              else
+              {
+                  OnlineUsers.Add(username, new List<string> { connectionId });
+                  isOnline = true;
+              }
+          }
+          return Task.FromResult(isOnline);
+      }
+      ```
+
+  - In **UserDisconnected**
+
+    - ```cs
+      public Task<bool> UserDisconnected(string username, string connectionId)
+      {
+          bool isOffline = false;
+          lock (OnlineUsers)
+          {
+              if (!OnlineUsers.ContainsKey(username)) return Task.FromResult(isOffline);
+      
+              OnlineUsers[username].Remove(connectionId);
+              if (OnlineUsers[username].Count == 0)
+              {
+                  OnlineUsers.Remove(username);
+                  isOffline = true;
+              }
+          }
+          return Task.FromResult(isOffline);
+      }
+      ```
+
+- Back to **PresenceHub** to add **isOnline** checks
+
+  - ```cs
+    public override async Task OnConnectedAsync()
+    {
+        var isOnline = await _tracker.UserConnected(Context.User.GetUsername(), Context.ConnectionId);
+        if (isOnline)
+            await Clients.Others.SendAsync("UserIsOnline", Context.User.GetUsername());
+    
+        var currentUsers = await _tracker.GetOnlineUsers();
+        await Clients.Caller.SendAsync("GetOnlineUsers", currentUsers);
+    }
+    
+    public override async Task OnDisconnectedAsync(Exception exception)
+    {
+        var isOffline = await _tracker.UserDisconnected(Context.User.GetUsername(), Context.ConnectionId);
+    
+        if (isOffline)
+            await Clients.Others.SendAsync("UserIsOffline", Context.User.GetUsername());
+    
+        await base.OnDisconnectedAsync(exception);
+    }
+    ```
+
+- **presence.service** change **UserIsOffline** and **UserIsOffline** hubConnections
+
+  - ```ts
+    this.hubConnection.on('UserIsOnline', username => {
+        this.onlineUsers$.pipe(take(1)).subscribe(usernames => {
+            this.onlineUsersSource.next([...usernames, username])
+        })
+    })
+    
+    this.hubConnection.on('UserIsOffline', username => {
+        this.onlineUsers$.pipe(take(1)).subscribe(usernames => {
+            this.onlineUsersSource.next([...usernames.filter(x => x !== username)])
+        })
+    })
+    ```
+
+### Optimizing the messages
+
+- **MessageHub**
+
+```cs
+public override async Task OnConnectedAsync()
+{
+    var httpContext = Context.GetHttpContext();
+    var otherUser = httpContext.Request.Query["user"].ToString();
+    var groupName = GetGroupName(Context.User.GetUsername(), otherUser);
+    await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+    var group = await AddToGroup(groupName);
+    await Clients.Group(groupName).SendAsync("UpdatedGroup", group);
+
+    var messages = await _messageRepository.
+        GetMessageThread(Context.User.GetUsername(), otherUser);
+
+    await Clients.Caller.SendAsync("ReceiveMessageThread", messages);
+}
+//...
+private async Task<Group> AddToGroup(string groupName)
+{
+    var group = await _messageRepository.GetMessageGroup(groupName);
+    var connection = new Connection(Context.ConnectionId, Context.User.GetUsername());
+    if (group == null)
+    {
+        group = new Group(groupName);
+        _messageRepository.AddGroup(group);
+    }
+    group.Connections.Add(connection);
+    if (await _messageRepository.SaveAllAsync()) return group;
+    throw new HubException("Failed to join group");
+}
+private async Task<Group> RemoveFromMessageGroup()
+{
+    var group = await _messageRepository.GetGroupForConnection(Context.ConnectionId);
+    var connection = group.Connections.FirstOrDefault(x => x.ConnectionId == Context.ConnectionId);
+    _messageRepository.RemoveConnection(connection);
+    if (await _messageRepository.SaveAllAsync()) return group;
+    throw new HubException("Failed to remove from group");
+}
+```
+
+- **MessageRepository (and Interface of it)**
+
+```cs
+//...       
+public async Task<Group> GetGroupForConnection(string connectionId)
+{
+    return await _context.Groups
+        .Include(c => c.Connections)
+        .Where(c => c.Connections.Any(x => x.ConnectionId == connectionId))
+        .FirstOrDefaultAsync();
+}
+//...
+public async Task<Group> GetMessageGroup(string groupName)
+{
+    return await _context.Groups
+        .Include(x => x.Connections)
+        .FirstOrDefaultAsync(x => x.Name == groupName);
+}
+```
+
+- Create **group.ts** model in **_models** of **client**
+
+```ts
+export interface Group {
+    name: string;
+    connections: Connection[]
+}
+interface Connection {
+    connectionId: string;
+    username: string;
+}
+```
+
+- **message.service** new **hubConnection** in **createHubConnection**
+
+```ts
+   this.hubConnection.on('UpdatedGroup', (group: Group) => {
+      if (group.connections.some(x => x.username === otherUsername)) {
+        this.messageThread$.pipe(take(1)).subscribe(messages => {
+          messages.forEach(message => {
+            if (!message.dateRead) {
+              message.dateRead = new Date(Date.now())
+            }
+          })
+          this.messageThreadSource.next([...messages]);
+        })
+      }
+    })
+```
+
 
 
 ## 17 - Unit of Work Pattern
