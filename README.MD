@@ -8142,6 +8142,38 @@ public static class UtcDateAnnotation
 
 ### Optimizing queries 2
 
+- Update **GetUsers** endpoint on **UsersController**
+
+```cs
+[HttpGet]
+public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers([FromQuery] UserParams userParams)
+{
+    var gender = await _unitOfWork.UserRepository.GetUserGender(User.GetUsername());
+    userParams.CurrentUsername = User.GetUsername();
+
+    if (string.IsNullOrEmpty(userParams.Gender))
+        userParams.Gender = gender == "male" ? "female" : "male";
+
+    var users = await _unitOfWork.UserRepository.GetMembersAsync(userParams);
+
+    Response.AddPaginationHeader(users.CurrentPage, users.PageSize,
+                                 users.TotalCount, users.TotalPages);
+
+    return Ok(users);
+}
+```
+
+- Add **GetUserGender** to **UserRepository** (and interface)
+
+```cs
+public async Task<string> GetUserGender(string username)
+{
+    return await _context.Users
+        .Where(x => x.UserName == username)
+        .Select(x => x.Gender).FirstOrDefaultAsync();
+}
+```
+
 
 
 ### Adding a confirmation service to the angular app

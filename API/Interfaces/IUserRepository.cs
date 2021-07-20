@@ -1,6 +1,7 @@
 using API.DTOs;
 using API.Entities;
 using API.Helpers;
+using Microsoft.Extensions.Localization;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -19,5 +20,7 @@ namespace API.Interfaces
         Task<PagedList<MemberDto>> GetMembersAsync(UserParams userParams);
 
         Task<MemberDto> GetMemberAsync(string username);
+
+        Task<string> GetUserGender(string username);
     }
 }
