@@ -8378,11 +8378,28 @@ namespace API.Controllers
 }
 ```
 
-- Add  `endpoints.MapFallbackToController("Index", "Fallback");` to e
+- Add  `endpoints.MapFallbackToController("Index", "Fallback");` to endpoints
 
 ### Creating an angular production build
 
+https://angular.io/guide/deployment#production-optimizations
+
+- Removed fake delay from **loading.interceptor.ts**
+- `ng build --prod`
+
 ### Switching the DB Server to PostGres
+
+https://docs.microsoft.com/en-us/ef/core/providers/?tabs=dotnet-core-cli
+
+- Install Docker Desktop, find postgres on dockerhub
+- run on terminal
+
+```bash
+docker run --name dev -e POSTGRES_USER=appuser -e POSTGRES_PASSWORD=Pa$$w0rd -p 5432:5432 -d postgres:latest
+```
+
+- Check the instances from Docker Desktop app
+- Install pgAdmin and login **Host**: localhost **Port**: 5432 **Maintenance database**: postgres **Username**: appuser **Password**: password
 
 ### Changing the DB Server in our app
 
