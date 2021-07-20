@@ -7893,23 +7893,75 @@ interface Connection {
 - **message.service** new **hubConnection** in **createHubConnection**
 
 ```ts
-   this.hubConnection.on('UpdatedGroup', (group: Group) => {
-      if (group.connections.some(x => x.username === otherUsername)) {
+this.hubConnection.on('UpdatedGroup', (group: Group) => {
+    if (group.connections.some(x => x.username === otherUsername)) {
         this.messageThread$.pipe(take(1)).subscribe(messages => {
-          messages.forEach(message => {
-            if (!message.dateRead) {
-              message.dateRead = new Date(Date.now())
-            }
-          })
-          this.messageThreadSource.next([...messages]);
+            messages.forEach(message => {
+                if (!message.dateRead) {
+                    message.dateRead = new Date(Date.now())
+                }
+            })
+            this.messageThreadSource.next([...messages]);
         })
-      }
-    })
+    }
+})
 ```
 
-
-
 ## 17 - Unit of Work Pattern
+
+### Implementing the unit of work
+
+- Create a new Interface called **IUnitOfWork** and make implementations in **UnitOfWork** in Data folder
+
+```cs
+namespace API.Data
+{
+    public class UnitOfWork : IUnitOfWork
+    {
+        private readonly IMapper _mapper;
+        private readonly DataContext _context;
+        public UnitOfWork(DataContext context, IMapper mapper)
+        {
+            _context = context;
+            _mapper = mapper;
+
+        }
+        public IUserRepository UserRepository => new UserRepository(_context, _mapper);
+
+        public IMessageRepository MessageRepository => new MessageRepository(_context, _mapper);
+
+        public ILikesRepository LikesRepository => new LikesRepository(_context);
+        public async Task<bool> Complete()
+        {
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public bool HasChanges()
+        {
+            return _context.ChangeTracker.HasChanges();
+        }
+    }
+}
+```
+
+- In ApplicationServiceExtensions remove repositories and add `services.AddScoped<IUnitOfWork, UnitOfWork>();`
+- Remove **SaveAllAsync()** from **MessageRepository** and **UserRepository** (also interfaces of them)
+
+### Refactoring the controllers to user the unit of work
+
+### Optimizing queries 1
+
+### Fixing UTC dates again
+
+### Optimizing queries 2
+
+### Adding a confirmation service to the angular app
+
+### Getting the data from the confirmation modal
+
+### Tidying up the member message component
+
+### ???
 
 ## 18 - Publishing
 
