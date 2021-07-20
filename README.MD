@@ -8346,11 +8346,24 @@ export class PreventUnsavedChangesGuard implements CanDeactivate<unknown> {
 
 ### Photo Management (Challenge)
 
+* 
+* 
+
+COMING SOON
+
 ## 18 - Publishing
 
 ### Preparing the angular app and serving this from the API server
 
-### Adding a fallback controller
+- Searched for usages of localhost and change them with **environment.apiUrl**
+- **angular.json** change output path to `"outputPath": "../API/wwwroot",`
+- **Startup.cs** add `app.UseDefaultFiles(); app.UseStaticFiles();` to **Configure**
+- run `ng build` for client
+- now our app runs without angular and just from dotnet server
+
+### Adding a fallback controller 
+
+
 
 ### Creating an angular production build
 
