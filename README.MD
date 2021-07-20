@@ -8248,9 +8248,78 @@ export class ConfirmDialogComponent implements OnInit {
 </div>
 ```
 
-
-
 ### Getting the data from the confirmation modal
+
+- **confirm.service** update
+
+```ts
+export class ConfirmService {
+    bsModelRef: BsModalRef;
+
+    constructor(private modalService: BsModalService) { }
+
+    confirm(title = 'Confirmation',
+             message = 'Are you sure you want to do this?',
+             btnOkText = 'Ok',
+             btnCancelText = 'Cancel',): Observable<boolean> {
+        const config = {
+            initialState: {
+                title, message, btnOkText, btnCancelText
+            }
+        }
+        this.bsModelRef = this.modalService.show(ConfirmDialogComponent, config);
+        return new Observable<boolean>(this.getResult());
+    }
+
+    private getResult() {
+        return (observer) => {
+            const subscription = this.bsModelRef.onHidden.subscribe(() => {
+                observer.next(this.bsModelRef.content.result);
+                observer.complete();
+            });
+
+            return {
+                unsubscribe() {
+                    subscription.unsubscribe();
+                }
+            }
+        }
+    }
+}
+```
+
+- **Prevent unsaved changes guard** update
+
+```ts
+export class PreventUnsavedChangesGuard implements CanDeactivate<unknown> {
+
+  constructor(private confirmService: ConfirmService) { }
+
+  canDeactivate(
+    component: MemberEditComponent): Observable<boolean> | boolean {
+    if (component.editForm.dirty) {
+      return this.confirmService.confirm()
+    }
+    return true;
+  }
+}
+```
+
+- **messages.component** delete method update (Inject **ConfirmService**)
+
+```ts
+  deleteMessage(id: number) {
+    this.confirmService.confirm('Confirm delete message', 'This cannot be undone').subscribe(result => {
+      if (result) {
+        this.messageService.deleteMessage(id).subscribe(() => {
+          this.messages.splice(this.messages.findIndex(m => m.id === id), 1);
+        })
+      }
+    })
+  }
+```
+
+
 
 ### Tidying up the member message component
 
