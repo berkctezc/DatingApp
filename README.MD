@@ -7947,7 +7947,109 @@ namespace API.Data
 - In ApplicationServiceExtensions remove repositories and add `services.AddScoped<IUnitOfWork, UnitOfWork>();`
 - Remove **SaveAllAsync()** from **MessageRepository** and **UserRepository** (also interfaces of them)
 
-### Refactoring the controllers to user the unit of work
+### Refactoring the controllers to usethe unit of work
+
+- **LikesController** update constructor and change all `_userRepository`,`_likesRepository` to `_unitOfWork.UserRepository`, `_unitOfWork.LikesRepository`  `_...Repository.SaveAllAsync()` to `_unitOfWork.Complete()`
+
+```cs
+public class LikesController : BaseApiController
+{
+    private readonly IUnitOfWork _unitOfWork;
+    public LikesController(IUnitOfWork unitOfWork)
+    {
+        _unitOfWork = unitOfWork;
+    }
+    //...............
+    // other changes
+    //...............
+}
+```
+
+- In **MessagesController** 
+  - we could remove **GetMessageThread** because we got this functionality on our **SignalR** hub
+  - Update constructor like we did in LikesController but plus IMapper and same for `_...Repository` to `_unitOfWork....Repository` 
+
+```cs
+public class MessagesController : BaseApiController
+{
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
+    public MessagesController(IMapper mapper, IUnitOfWork unitOfWork)
+    {
+        _mapper = mapper;
+        _unitOfWork = unitOfWork;
+    }
+    //...............
+    // other changes
+    //...............
+}
+```
+
+- Same with **UsersController** but with **photoService**
+
+```cs
+public class UsersController : BaseApiController
+{
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
+    private readonly IPhotoService _photoService;
+
+    public UsersController(IUnitOfWork unitOfWork, IMapper mapper,
+                           IPhotoService photoService)
+    {
+        _unitOfWork = unitOfWork;
+        _mapper = mapper;
+        _photoService = photoService;
+    }   
+    //...............
+    // other changes
+    //...............
+}      
+```
+
+- same for **MessageHub**
+
+```cs
+public class MessageHub : Hub
+{
+    private readonly IMapper _mapper;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IHubContext<PresenceHub> _presenceHub;
+    private readonly PresenceTracker _tracker;
+    public MessageHub(IMapper mapper, IUnitOfWork unitOfWork, IHubContext<PresenceHub> presenceHub, PresenceTracker tracker)
+    {
+        _tracker = tracker;
+        _presenceHub = presenceHub;
+        _mapper = mapper;
+        _unitOfWork = unitOfWork;
+    }
+    //...............
+    // other changes
+    //...............
+}
+```
+
+- **LogUserActivity**
+
+```cs
+public class LogUserActivity : IAsyncActionFilter
+{
+    public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+    {
+        var resultContext = await next();
+
+        if (!resultContext.HttpContext.User.Identity.IsAuthenticated) return;
+
+        var userId = resultContext.HttpContext.User.GetUserId();
+        var uow = resultContext.HttpContext.RequestServices.GetService<IUnitOfWork>();
+        var user = await uow.UserRepository.GetUserByIdAsync(userId);
+        user.LastActive = DateTime.UtcNow;
+        await uow.Complete();
+    }
+}
+```
+
+- Remove **GetMessageThread's** **SaveChanges** and go to **MessageHub's** **OnConnectedAsync** add  `if (_unitOfWork.HasChanges()) await _unitOfWork.Complete();` before **SendAsync**
 
 ### Optimizing queries 1
 
