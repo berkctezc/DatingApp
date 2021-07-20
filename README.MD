@@ -8403,6 +8403,29 @@ docker run --name dev -e POSTGRES_USER=appuser -e POSTGRES_PASSWORD=Pa$$w0rd -p 
 
 ### Changing the DB Server in our app
 
+- Delete migrations, drop db with `dotnet ef database drop`
+- Install **Npgsql.EntityFrameworkCore.PostgreSQL** Nuget Package
+- Change **ConnectionStrings** in **appsettings.Development.json**
+
+```json
+"ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Port=5432;User Id=appuser;Password=password; Database=datingapp"
+},
+```
+
+- Change **AddDbContext** in **ApplicationServiceExtensions**
+
+```cs
+services.AddDbContext<DataContext>(options =>
+                                   {
+                                       options.UseNpgsql(config.GetConnectionString("DefaultConnection"));
+                                   });
+```
+
+- `dotnet ef migrations add PostgresInitial -o Data/Migrations`
+- dotnet run to apply migrations
+- test the functionality
+
 ### Setting up Heroku
 
 ### Deploying the app to Heroku
