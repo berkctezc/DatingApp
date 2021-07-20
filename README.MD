@@ -8363,7 +8363,22 @@ COMING SOON
 
 ### Adding a fallback controller 
 
+- Create **FallbackController** in Controllers
 
+```cs
+namespace API.Controllers
+{
+    public class FallbackController : Controller
+    {
+        public ActionResult Index()
+        {
+            return PhysicalFile(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "index.html"), "text/HTML");
+        }
+    }
+}
+```
+
+- Add  `endpoints.MapFallbackToController("Index", "Fallback");` to e
 
 ### Creating an angular production build
 
