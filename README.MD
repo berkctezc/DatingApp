@@ -8174,9 +8174,81 @@ public async Task<string> GetUserGender(string username)
 }
 ```
 
-
-
 ### Adding a confirmation service to the angular app
+
+- Create confirmation service in _services
+
+```bash
+cd src/app/_services
+ng g s confirm --skip-tests
+```
+
+- **confirm.service**
+
+```ts
+export class ConfirmService {
+    bsModelRef: BsModalRef;
+
+    constructor(private modalService: BsModalService) { }
+
+    confirm(title = 'Confirmation',
+             message = 'Are you sure you want to do this?',
+             btnOkText = 'Ok',
+             btnCancelText = 'Cancel',) {
+        const config = {
+            initialState: {
+                title, message, btnOkText, btnCancelText
+            }
+        }
+        this.bsModelRef = this.modalService.show('confirm', config);
+    }
+}
+```
+
+- Create **confirm-dialog component** in **modals**
+
+```ts
+export class ConfirmDialogComponent implements OnInit {
+    title: string;
+    message: string;
+    btnOkText: string;
+    btnCancelText: string;
+    result: boolean;
+
+    constructor(public bsModalRef: BsModalRef) { }
+    ngOnInit(): void {
+    }
+    confirm() {
+        this.result = true;
+        this.bsModalRef.hide();
+    }
+    decline() {
+        this.result = false;
+        this.bsModalRef.hide();
+    }
+}
+```
+
+- **confirm-dialog template**
+
+```html
+<div class="modal-header">
+    <h4 class="modal-title pull-left">{{ title }}</h4>
+    <div class="modal-body">
+        <p>{{ message }}</p>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-success" (click)="confirm()">
+            {{ btnOkText }}
+        </button>
+        <button type="button" class="btn btn-danger" (click)="decline()">
+            {{ btnCancelText }}
+        </button>
+    </div>
+</div>
+```
+
+
 
 ### Getting the data from the confirmation modal
 
