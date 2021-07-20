@@ -6608,7 +6608,7 @@ public class AdminController : ControllerBase
 
 ### Adding an admin guard
 
-- Created guard in src/app/_guards => `ng g g admin --skip-tests`
+- Created guard in **src/app/_guards** => `ng g g admin --skip-tests`
 
 ```ts
 export class AdminGuard implements CanActivate {
@@ -7947,7 +7947,7 @@ namespace API.Data
 - In ApplicationServiceExtensions remove repositories and add `services.AddScoped<IUnitOfWork, UnitOfWork>();`
 - Remove **SaveAllAsync()** from **MessageRepository** and **UserRepository** (also interfaces of them)
 
-### Refactoring the controllers to usethe unit of work
+### Refactoring the controllers to use the unit of work
 
 - **LikesController** update constructor and change all `_userRepository`,`_likesRepository` to `_unitOfWork.UserRepository`, `_unitOfWork.LikesRepository`  `_...Repository.SaveAllAsync()` to `_unitOfWork.Complete()`
 
@@ -8052,6 +8052,55 @@ public class LogUserActivity : IAsyncActionFilter
 - Remove **GetMessageThread's** **SaveChanges** and go to **MessageHub's** **OnConnectedAsync** add  `if (_unitOfWork.HasChanges()) await _unitOfWork.Complete();` before **SendAsync**
 
 ### Optimizing queries 1
+
+- **MessageRepository**
+
+```cs
+public async Task<IEnumerable<MessageDto>> GetMessageThread(string currentUsername,string recipientUsername)
+{
+    var messages = await _context.Messages
+        .Where(m => m.Recipient.UserName == currentUsername && m.RecipientDeleted == false
+               && m.Sender.UserName == recipientUsername
+               || m.Recipient.UserName == recipientUsername
+               && m.Sender.UserName == currentUsername && m.SenderDeleted == false
+              )
+        .OrderBy(m => m.MessageSent)
+        .ProjectTo<MessageDto>(_mapper.ConfigurationProvider)
+        .ToListAsync();
+    var unreadMessages = messages.Where(m => m.DateRead == null && m.RecipientUsername == currentUsername).ToList();
+    if (unreadMessages.Any())
+    {
+        foreach (var message in unreadMessages)
+        {
+            message.DateRead = DateTime.UtcNow;
+        }
+    }
+    return messages;
+}
+//...
+//Also added RecipientDeteled, SenderDeleted to MessageDto with [JsonIgnore] annotations
+public async Task<PagedList<MessageDto>> GetMessagesForUser(MessageParams messageParams)
+{
+    var query = _context.Messages
+        .OrderByDescending(m => m.MessageSent)
+        .ProjectTo<MessageDto>(_mapper.ConfigurationProvider)
+        .AsQueryable();
+
+    query = messageParams.Container switch
+    {
+            "Inbox" => query.Where(u => u.RecipientUsername == messageParams.Username
+                                   && u.RecipientDeleted == false),
+            "Outbox" => query.Where(u => u.SenderUsername == messageParams.Username
+                                    && u.SenderDeleted == false),
+            _ => query.Where(u => u.RecipientUsername ==
+                             messageParams.Username && u.RecipientDeleted == false && u.DateRead == null)
+    };
+
+    return await PagedList<MessageDto>.CreateAsync(query, messageParams.PageNumber, messageParams.PageSize);
+}
+```
+
+
 
 ### Fixing UTC dates again
 
