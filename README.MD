@@ -2419,9 +2419,9 @@ export class MemberDetailComponent implements OnInit {
 />
 ```
 
-## 9 - Updating Resources
+## 9 - Updating Resources (FE+BE)
 
-### Member edit component
+### Member edit component (FE)
 
 ```bash
 cd src/app/members
@@ -2460,7 +2460,7 @@ export class MemberEditComponent implements OnInit {
 <h1 *ngIf="member">{{ member.username }}</h1>
 ```
 
-### Edit Template Form
+### Edit Template Form (FE)
 
 - Copied and modified detail component for our needs
 
@@ -2564,7 +2564,7 @@ export class MemberEditComponent implements OnInit {
 
 - Also copied css
 
-### Adding the update functionality
+### Adding the update functionality (FE)
 
 - Make the form an angular form by adding `#editForm="ngForm" (ngSubmit)="updateMember() to <form>`.
 - Hook the button to form by adding `form="editForm"` to button and `id="editForm"` to form.
@@ -2580,7 +2580,7 @@ export class MemberEditComponent implements OnInit {
   }
 ```
 
-### Can Deactivate Route Guard
+### Can Deactivate Route Guard (FE)
 
 ```bash
 cd src/app/_guards
@@ -2633,7 +2633,7 @@ canDeactivate(
         }
 ```
 
-### Updating user in the client app
+### Updating user in the client app (FE)
 
 - Make request **updateMember** in **members.service**
 
@@ -2644,14 +2644,14 @@ updateMember(member: Member) { return this.http.put(this.baseUrl + 'users', memb
 - Configure **updateMember** in **member-edit.component.ts**
 
 ```ts
-  updateMember() {
+updateMember() {
     this.memberService.updateMember(this.member).subscribe(()=>{
-      this.toastr.success('Profile updated')
-      this.editForm.reset(this.member);
+        this.toastr.success('Profile updated')
+        this.editForm.reset(this.member);
     })
 ```
 
-### Loading Indicators
+### Loading Indicators (FE)
 
 ```bash
 npm install ngx-spinner
@@ -2660,13 +2660,13 @@ npm install ngx-spinner
 - Add to **shared.module.ts**
 
 ```ts
- imports: [
-// ...
+imports: [
+    // ...
     NgxSpinnerModule
-  ],  exports: [
-//..
+],  exports: [
+    // ...
     NgxSpinnerModule
-  ]
+]
 ```
 
 - Create busy service
@@ -2677,25 +2677,25 @@ ng g s busy --skip-tests
 ```
 
 ```ts
-export class BusyService {
-  busyRequestCount = 0;
-  constructor(private spinnerService: NgxSpinnerService) {}
-  busy() {
-    this.busyRequestCount++;
-    this.spinnerService.show(undefined, {
-      type: "line-scale-party",
-      bdColor: "rgba(255,255,255,0)",
-      color: "#333333",
-    });
-  }
-  idle() {
-    this.busyRequestCount--;
-    if (this.busyRequestCount <= 0) {
-      this.busyRequestCount = 0;
-      this.spinnerService.hide();
+    export class BusyService {
+      busyRequestCount = 0;
+      constructor(private spinnerService: NgxSpinnerService) {}
+      busy() {
+        this.busyRequestCount++;
+        this.spinnerService.show(undefined, {
+          type: "line-scale-party",
+          bdColor: "rgba(255,255,255,0)",
+          color: "#333333",
+        });
+      }
+      idle() {
+        this.busyRequestCount--;
+        if (this.busyRequestCount <= 0) {
+          this.busyRequestCount = 0;
+          this.spinnerService.hide();
+        }
+      }
     }
-  }
-}
 ```
 
 - Create loading interceptor
@@ -2731,7 +2731,7 @@ export class LoadingInterceptor implements HttpInterceptor {
 </ngx-spinner>
 ```
 
-### Using service to store state
+### Using service to store state (FE)
 
 - Inside members service
 
@@ -2787,7 +2787,7 @@ export class MemberListComponent implements OnInit {
 </div>
 ```
 
-## 10 - Photo Upload Functionality
+## 10 - Photo Upload Functionality (BE+FE)
 
 ### Configuring Cloudinary in the API (BE)
 
@@ -3256,7 +3256,7 @@ img {
 </button>
 ```
 
-## 11 - Reactive Forms
+## 11 - Reactive Forms (FE+BE)
 
 - Import ReactiveForms in **app.module.ts**
 - Setup reactive form in **register.component.ts**
@@ -3320,7 +3320,7 @@ export class RegisterComponent implements OnInit {
 <p>Form value: {{ registerForm.status | json }}</p>
 ```
 
-### Client side validation
+### Client side validation (FE)
 
 - Validators
 
@@ -3334,7 +3334,7 @@ export class RegisterComponent implements OnInit {
   }
 ```
 
-### Custom validators
+### Custom validators (FE)
 
 - A Validator for pass and pass confirm matching
 
@@ -3355,7 +3355,7 @@ export class RegisterComponent implements OnInit {
   }
 ```
 
-### Validation Feedback
+### Validation Feedback (FE)
 
 - In html files use it like this and add messages with div
 
@@ -3417,10 +3417,10 @@ export class RegisterComponent implements OnInit {
 </div>
 ```
 
-### Creating a reusable text input
+### Creating a reusable text input (FE)
 
 - Created a **\_forms** folder and generate a component named **text-input** `ng g c text-input --skip-tests`
-- Implent ControlValueAccessor in text-input.component instead of OnInit
+- Implement **ControlValueAccessor** in **text-input.component** instead of **OnInit**
 - Empty not implemented exceptions and add input, inject control
 
 ```ts
@@ -3496,9 +3496,9 @@ export class TextInputComponent implements ControlValueAccessor {
 </form>
 ```
 
-### Using the form builder service
+### Using the form builder service (FE)
 
-- Inject FormBuilder in register.component.ts. Swap new form group with array brackets
+- Inject FormBuilder in **register.component.ts**. Swap new form group with array brackets
 
 ```ts
   constructor(  //...
@@ -3511,9 +3511,9 @@ export class TextInputComponent implements ControlValueAccessor {
     });}
 ```
 
-### Expanding the register form
+### Expanding the register form (FE)
 
-- Add new fields to initializeForm in **register-component.ts**
+- Add new fields to **initializeForm** in **register-component.ts**
 
 ```ts
   initializeForm() {
@@ -3591,9 +3591,9 @@ export class TextInputComponent implements ControlValueAccessor {
 </form>
 ```
 
-### Adding Reusable date input
+### Adding Reusable date input (FE)
 
-- Add datepicker modlue in shared.module.ts
+- Add **datepicker** module in shared.module.ts
 
 ```ts
 import { BsDatepickerModule } from 'ngx-bootstrap/datepicker';
@@ -3611,7 +3611,7 @@ import { BsDatepickerModule } from 'ngx-bootstrap/datepicker';
 })
 ```
 
-- Create dateInput form for reusability
+- Create **dateInput** form for reusability
 
 ```bash
 cd src/app/_forms
@@ -3732,7 +3732,7 @@ public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
 }
 ```
 
-### Client side registration
+### Client side registration (FE)
 
 - In register component, update register method
 
@@ -3807,9 +3807,9 @@ export class RegisterComponent implements OnInit {
         }}}}
 ```
 
-## 12 - Paging, Sorting, Filtering
+## 12 - Paging, Sorting, Filtering (BE+FE)
 
-### Paged List Class
+### Paged List Class (BE)
 
 ```cs
 namespace API.Helpers
@@ -3824,12 +3824,10 @@ namespace API.Helpers
             TotalCount = count;
             AddRange(items);
         }
-
         public int CurrentPage { get; set; }
         public int TotalPages { get; set; }
         public int PageSize { get; set; }
         public int TotalCount { get; set; }
-
         public static async Task<PagedList<T>> CreateAsync(IQueryable<T> source, int pageNumber, int pageSize)
         {
             var count = await source.CountAsync();
@@ -3840,7 +3838,7 @@ namespace API.Helpers
 }
 ```
 
-### Adding helper classes for pagination
+### Adding helper classes for pagination (BE)
 
 - **PaginationHeader.cs** Helper method
 
@@ -3902,7 +3900,7 @@ namespace API.Helpers
 }
 ```
 
-### Using the pagination classes
+### Using the pagination classes (BE)
 
 - Updated **GetMembersAsync** method in **IUserRepository.cs** interface to return **PagedList** of MemberDto Task with user parameters  
   `Task<PagedList<MemberDto>> GetMembersAsync(UserParams userParams);`
@@ -3946,9 +3944,9 @@ public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers([FromQuery] Use
     }
 ```
 
-### Pagination in client
+### Pagination in client (FE)
 
-- Create a pagination model in \_models
+- Create a **pagination** model in \_models
 
 ```ts
 export interface Pagination {
@@ -4018,7 +4016,7 @@ export class MemberListComponent implements OnInit {
 </div>
 ```
 
-### Using the angular bootstrap pagination component
+### Using the angular bootstrap pagination component (FE)
 
 - In shared modules import PaginationModule from ngx-bootstrap/pagination
 
@@ -4065,7 +4063,7 @@ pageChanged(event: any) {
 </div>
 ```
 
-### Filtering in API
+### Filtering in API (BE)
 
 - We only want to show opposite gender and not themselves on the members list. First add **CurrentUsername** and **Gender** fields to **UserParams.cs**
 - Update **UsersController GetUsers** Action
@@ -4101,7 +4099,7 @@ public async Task<PagedList<MemberDto>> GetMembersAsync(UserParams userParams)
 
 - Now we get filtered results but query like this we could get the same gender `/api/users?gender=female`
 
-### Adding Additional Parameters
+### Adding Additional Parameters (BE)
 
 - Lets add min and max age to UserParams `public int MinAge { get; set; } = 18;` `public int MaxAge { get; set; } = 150;`
 - Add new parameters to GetMembersAsync on **UserRepository**
@@ -4120,7 +4118,7 @@ public async Task<PagedList<MemberDto>> GetMembersAsync(UserParams userParams)
 }
 ```
 
-### Cleaning up the member service
+### Cleaning up the member service (BE+FE)
 
 - Update **UserDto**
 
@@ -4277,7 +4275,7 @@ export class MemberListComponent implements OnInit {
 }
 ```
 
-### Filter Buttons on client
+### Filter Buttons on client (FE)
 
 - member-list.component add genderList with values and add resetFilter Function
 
@@ -4352,7 +4350,7 @@ export class MemberListComponent implements OnInit {
 </div>
 ```
 
-### Sort functionality
+### Sort functionality (BE)
 
 - Add OrderBy field to UserParams and set initial value "LastActive" in API
 - Add OrderBy functionality to UserRepository
@@ -4365,7 +4363,7 @@ query = userParams.OrderBy switch
 };
 ```
 
-### Adding an action filter (LogUserActivity)
+### Adding an action filter (LogUserActivity) (BE)
 
 - Create **LogUserActivity** helper method
 
@@ -4393,7 +4391,7 @@ namespace API.Helpers
 - Add to ApplicationServiceExtensions `services.AddScoped<LogUserActivity>();`
 - Filter through adding to BaseApiController `[ServiceFilter(typeof(LogUserActivity))]`
 
-### Making the LastActive action filter more optimal
+### Making the LastActive action filter more optimal (BE)
 
 - In **TokenService** change setting claim method in create token function
 
@@ -4423,7 +4421,7 @@ public static int GetUserId(this ClaimsPrincipal user)
   and change GetUserByUsernameAsync to ById
   `var user = await repo.GetUserByIdAsync(userId);`
 
-### Sorting on client
+### Sorting on client (FE)
 
 - Import **ButtonsModule** from ngx-bootstrap in **shared.module.ts**
 - Add **orderBy** field to **userParams.ts** and add it to get members `params = params.append('gender', userParams.gender);`
@@ -4456,7 +4454,7 @@ public static int GetUserId(this ClaimsPrincipal user)
 </div>
 ```
 
-### Formatting Dates
+### Formatting Dates (FE)
 
 - Install **ngx-timeago** with npm and import, export in **shared.module.ts**
 - member-detail view
@@ -4472,7 +4470,7 @@ public static int GetUserId(this ClaimsPrincipal user)
 </div>
 ```
 
-### Restoring the caching for members
+### Restoring the caching for members (FE)
 
 - Create a **memberCache** map in **members.service** and implement caching in getMembers
 
@@ -4500,7 +4498,7 @@ export class MembersService {
   }
 ```
 
-### Restoring caching for member detailed
+### Restoring caching for member detailed (FE)
 
 - Update **getMember** method in **members.service**
 
@@ -4517,7 +4515,7 @@ getMember(username: string) {
 }
 ```
 
-### Remembering the filters for a user in the service
+### Remembering the filters for a user in the service (FE)
 
 - Inject **accountService** into **members.service** and move the functionality of the member-list constructor to the members.service's
 
@@ -8319,11 +8317,50 @@ export class PreventUnsavedChangesGuard implements CanDeactivate<unknown> {
   }
 ```
 
-
-
 ### Tidying up the member message component
 
-### ???
+- **member-messages** template
+
+```html
+<ul
+    #scrollMe
+    style="overflow: scroll; height: 500px"
+    [scrollTop]="scrollMe.scrollHeight"
+    *ngIf="(messageService.messageThread$ | async).length > 0"
+    class="chat"
+    >
+    <!--STUFF-->
+</ul>
+```
+
+- **member-message** component change changeDetection method
+
+```ts
+@Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  selector: 'app-member-messages',
+  templateUrl: './member-messages.component.html',
+  styleUrls: ['./member-messages.component.css']
+})
+```
+
+### Photo Management (Challenge)
 
 ## 18 - Publishing
+
+### Preparing the angular app and serving this from the API server
+
+### Adding a fallback controller
+
+### Creating an angular production build
+
+### Switching the DB Server to PostGres
+
+### Changing the DB Server in our app
+
+### Setting up Heroku
+
+### Deploying the app to Heroku
+
+### Using branches in git and connecting Heroku to GitHub
 
