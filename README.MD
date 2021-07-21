@@ -8491,3 +8491,6 @@ services.AddDbContext<DataContext>(options =>
 
 ### Using branches in git and connecting Heroku to GitHub
 
+- Change deploy from Heroku Git to GitHub
+- Create a new branch for development git checkout -b FixMessages
+- after changes `git add . ; git commit -m "commitMessage"; git push origin FixMessages`
