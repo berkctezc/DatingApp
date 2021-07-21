@@ -8346,10 +8346,7 @@ export class PreventUnsavedChangesGuard implements CanDeactivate<unknown> {
 
 ### Photo Management (Challenge)
 
-* 
-* 
-
-COMING SOON
+* Done! Check commit
 
 ## 18 - Publishing
 
@@ -8491,6 +8488,10 @@ services.AddDbContext<DataContext>(options =>
 
 ### Using branches in git and connecting Heroku to GitHub
 
-- Change deploy from Heroku Git to GitHub
+- Change deploy from Heroku Git to GitHub (dont forget to ng build to get new wwwroot files)
 - Create a new branch for development git checkout -b FixMessages
 - after changes `git add . ; git commit -m "commitMessage"; git push origin FixMessages`
+
+### Merging changes and redeploying
+
+- git checkout master;git merge FixMessages; git push
