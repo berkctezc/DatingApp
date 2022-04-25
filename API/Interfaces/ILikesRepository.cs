@@ -3,14 +3,13 @@ using API.Entities;
 using API.Helpers;
 using System.Threading.Tasks;
 
-namespace API.Interfaces
+namespace API.Interfaces;
+
+public interface ILikesRepository
 {
-    public interface ILikesRepository
-    {
-        Task<UserLike> GetUserLike(int sourceUserId, int likedUserId);
+    Task<UserLike> GetUserLike(int sourceUserId, int likedUserId);
 
-        Task<AppUser> GetUserWithLikes(int userId);
+    Task<AppUser> GetUserWithLikes(int userId);
 
-        Task<PagedList<LikeDto>> GetUserLikes(LikesParams likesParams);
-    }
+    Task<PagedList<LikeDto>> GetUserLikes(LikesParams likesParams);
 }
