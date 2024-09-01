@@ -13,47 +13,47 @@ namespace API.Controllers;
 [Authorize]
 public class MessagesController : BaseApiController
 {
-    private readonly IUnitOfWork _unitOfWork;
-    private readonly IMapper _mapper;
-    public MessagesController(IMapper mapper, IUnitOfWork unitOfWork)
-    {
-        _mapper = mapper;
-        _unitOfWork = unitOfWork;
-    }
+	private readonly IUnitOfWork _unitOfWork;
+	private readonly IMapper _mapper;
 
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<MessageDto>>> GetMessagesForUser([FromQuery]
-        MessageParams messageParams)
-    {
-        messageParams.Username = User.GetUsername();
+	public MessagesController(IMapper mapper, IUnitOfWork unitOfWork)
+	{
+		_mapper = mapper;
+		_unitOfWork = unitOfWork;
+	}
 
-        var messages = await _unitOfWork.MessageRepository.GetMessagesForUser(messageParams);
+	[HttpGet]
+	public async Task<ActionResult<IEnumerable<MessageDto>>> GetMessagesForUser([FromQuery] MessageParams messageParams)
+	{
+		messageParams.Username = User.GetUsername();
 
-        Response.AddPaginationHeader(messages.CurrentPage, messages.PageSize,
-            messages.TotalCount, messages.TotalPages);
+		var messages = await _unitOfWork.MessageRepository.GetMessagesForUser(messageParams);
 
-        return messages;
-    }
+		Response.AddPaginationHeader(messages.CurrentPage, messages.PageSize,
+			messages.TotalCount, messages.TotalPages);
 
-    [HttpDelete("{id}")]
-    public async Task<ActionResult> DeleteMessage(int id)
-    {
-        var username = User.GetUsername();
+		return messages;
+	}
 
-        var message = await _unitOfWork.MessageRepository.GetMessage(id);
+	[HttpDelete("{id}")]
+	public async Task<ActionResult> DeleteMessage(int id)
+	{
+		var username = User.GetUsername();
 
-        if (message.Sender.UserName != username && message.Recipient.UserName != username)
-            return Unauthorized();
+		var message = await _unitOfWork.MessageRepository.GetMessage(id);
 
-        if (message.Sender.UserName == username) message.SenderDeleted = true;
+		if (message.Sender.UserName != username && message.Recipient.UserName != username)
+			return Unauthorized();
 
-        if (message.Recipient.UserName == username) message.RecipientDeleted = true;
+		if (message.Sender.UserName == username) message.SenderDeleted = true;
 
-        if (message.SenderDeleted && message.RecipientDeleted)
-            _unitOfWork.MessageRepository.DeleteMessage(message);
+		if (message.Recipient.UserName == username) message.RecipientDeleted = true;
 
-        if (await _unitOfWork.Complete()) return Ok();
+		if (message.SenderDeleted && message.RecipientDeleted)
+			_unitOfWork.MessageRepository.DeleteMessage(message);
 
-        return BadRequest("Problem deleting the message");
-    }
+		if (await _unitOfWork.Complete()) return Ok();
+
+		return BadRequest("Problem deleting the message");
+	}
 }
